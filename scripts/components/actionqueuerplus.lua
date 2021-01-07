@@ -265,27 +265,11 @@ function ActionQueuer:RepeatRecipe(recipe, skin)
 
         self._interrupted = false
 
-        while true do
-
-            if (
-                self._interrupted or
-                not playerInst.replica.builder:CanBuild(recipe.name)
-            ) then
-                self:Interrupt()
-                return
-            end
-
-            -- if playerController.ismastersim and playerInst.components.builder then
-            --     logger.logDebug("RepeatRecipe: is master sim and builder")
-            --     playerInst.components.combat:SetTarget(nil)
-            --     playerInst.components.builder:MakeRecipeFromMenu(recipe, skin)
-            -- else
-                -- logger.logDebug("RepeatRecipe: is not master sim or no builder")
-                playerController:RemoteMakeRecipeFromMenu(recipe, skin)
-            -- end
+        while not self._interrupted and playerInst.replica.builder:CanBuild(recipe.name) do
+            playerController:RemoteMakeRecipeFromMenu(recipe, skin)
             ActionQueuer_waitAction(self)
         end
-
+        self:Interrupt()
     end)
 end
 
@@ -338,7 +322,7 @@ ActionQueuer_applyToDeploy = function(self, quad)
             local inventory = playerInst.replica.inventory
             local itemToDeploy = (
                 inventory:GetActiveItem() or
-                utils.getItemFromInventory(playerController.ismastersim, inventory, activeItemName)
+                utils.getItemFromInventory(inventory, activeItemName)
             )
 
             if self._interrupted or not isItemValid(itemToDeploy) then

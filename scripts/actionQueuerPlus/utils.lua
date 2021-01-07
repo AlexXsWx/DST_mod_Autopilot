@@ -80,7 +80,7 @@ end
 
 --
 
-function utils.getItemFromInventory(masterSim, inventory, prefabName)
+function utils.getItemFromInventory(inventory, prefabName)
 
     local itemContainer = nil
 
@@ -95,19 +95,7 @@ function utils.getItemFromInventory(masterSim, inventory, prefabName)
 
     if not itemContainer then return nil end
 
-    local itemslots = nil
-
-    -- if itemContainer.GetItems then 
-        -- logger.logDebug("getItemFromInventory: GetItems") -- always this
-        itemslots = itemContainer:GetItems() 
-    -- elseif masterSim then
-    --     logger.logDebug("getItemFromInventory: ismastersim")
-    --     itemslots = itemContainer.itemslots or itemContainer.slots
-    -- else
-    --     logger.logWarning("getItemFromInventory failed to retrieve itemslots")
-    -- end
-
-    for slot, v in pairs(itemslots or {}) do
+    for slot, v in pairs(itemContainer:GetItems() or {}) do
         if slot and v.prefab == prefabName then
             itemContainer:TakeActiveItemFromAllOfSlot(slot)
             return inventory:GetActiveItem()
