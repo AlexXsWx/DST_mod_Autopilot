@@ -1,4 +1,5 @@
 local constants = require "actionQueuerPlus/constants"
+local logger    = require "actionQueuerPlus/logger"
 
 local utils = {}
 
@@ -49,12 +50,16 @@ end
 -- TODO: move to some more appropriate place, maybe prepareGetActions / actionsHelper?
 
 function utils.shouldIgnorePickupTarget(entity)
+    -- logger.logDebug(
+    --     "shouldIgnorePickupTarget: ismastersim = " ..
+    --     (ThePlayer and ThePlayer.components.playercontroller.ismastersim and "true" or "false")
+    -- ) -- always false
     return utils.toboolean(
         entity.components.mine and not entity.components.mine.inactive or
         entity.components.trap and not entity.components.trap.isset or
         (
-            ThePlayer and
-            not ThePlayer.components.playercontroller.ismastersim and
+            -- ThePlayer and
+            -- not ThePlayer.components.playercontroller.ismastersim and
             entity:HasTag("trap")
         )
     )
@@ -76,7 +81,7 @@ end
 
 function utils.canDeployItem(item)
     if not item then return false end
-    return tobooleaan(
+    return utils.toboolean(
         constants.ALLOWED_DEPLOY_PREFABS[item.prefab] or
         constants.ALLOWED_DEPLOY_MODES[utils.getItemDeployMode(item)]
     )
@@ -84,7 +89,7 @@ end
 
 --
 
-function utils.getItemFromInventory(inventory, prefabName)
+function utils.getItemFromInventory(masterSim, inventory, prefabName)
 
     local itemContainer = nil
 
@@ -102,9 +107,13 @@ function utils.getItemFromInventory(inventory, prefabName)
     local itemslots = nil
 
     if itemContainer.GetItems then 
+        logger.logDebug("getItemFromInventory: GetItems")
         itemslots = itemContainer:GetItems() 
-    elseif pc.ismastersim then
+    elseif masterSim then
+        logger.logDebug("getItemFromInventory: ismastersim")
         itemslots = itemContainer.itemslots or itemContainer.slots
+    else
+        logger.logWarning("getItemFromInventory failed to retrieve itemslots")
     end
 
     for slot, v in pairs(itemslots or {}) do
@@ -126,11 +135,14 @@ local function doAction(
     target,
     released
 )
-    if playerController.ismastersim then
-        playerInst.components.combat:SetTarget(nil)
-        playerController:DoAction(bufferedAction)
-        return
-    end
+    -- if playerController.ismastersim then
+    --     logger.logDebug("doAction: ismastersim")
+    --     playerInst.components.combat:SetTarget(nil)
+    --     playerController:DoAction(bufferedAction)
+    --     return
+    -- end
+
+    -- logger.logDebug("doAction: not master sim") -- always false
 
     local controlmods = playerController:EncodeControlMods()
 
@@ -222,7 +234,12 @@ end
 -- TODO: move to a better place
 
 local function createPreventRepeatAction(masterSim)
-    local lastEntity, lastAction, lastPickEntity
+
+    logger.logDebug(
+        "createPreventRepeatAction: ismastersim = " .. (masterSim and "true" or "false")
+    ) -- always false
+
+    local lastEntity, lastAction --, lastPickEntity
 
     local function preventRepeatAction(targetEntity, action)
         if lastEntity ~= nil and lastEntity == targetEntity then
@@ -248,16 +265,16 @@ local function createPreventRepeatAction(masterSim)
                 )
             ) then
                 -- TODO: figure out what's this for
-                if not masterSim then 
+                -- if not masterSim then 
                     return true
-                end
+                -- end
 
-                if lastPickEntity ~= nil and lastPickEntity == targetEntity then
-                    return true
-                else
-                    -- TODO: shouldn't this be set regardless if action/target is repeated or not?
-                    lastPickEntity = targetEntity
-                end
+                -- if lastPickEntity ~= nil and lastPickEntity == targetEntity then
+                --     return true
+                -- else
+                --     -- TODO: shouldn't this be set regardless if action/target is repeated or not?
+                --     lastPickEntity = targetEntity
+                -- end
             end
         end
 

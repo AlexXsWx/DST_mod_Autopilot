@@ -276,9 +276,11 @@ function ActionQueuer:RepeatRecipe(recipe, skin)
             end
 
             if playerController.ismastersim and playerInst.components.builder then
+                logger.logDebug("RepeatRecipe: is master sim and builder")
                 playerInst.components.combat:SetTarget(nil)
                 playerInst.components.builder:MakeRecipeFromMenu(recipe, skin)
             else
+                logger.logDebug("RepeatRecipe: is not master sim or no builder")
                 playerController:RemoteMakeRecipeFromMenu(recipe, skin)
             end
             ActionQueuer_waitAction(self)
@@ -336,7 +338,7 @@ ActionQueuer_applyToDeploy = function(self, quad)
             local inventory = playerInst.replica.inventory
             local itemToDeploy = (
                 inventory:GetActiveItem() or
-                utils.getItemFromInventory(inventory, activeItemName)
+                utils.getItemFromInventory(playerController.ismastersim, inventory, activeItemName)
             )
 
             if self._interrupted or not isItemValid(itemToDeploy) then
@@ -416,8 +418,13 @@ ActionQueuer_applyToSelection = function(self)
 
                 local action = actions[1].action
 
+                -- logger.logDebug(
+                --     "afterSmartDoNextAction: ismastersim = " ..
+                --     (playerController.ismastersim and "true" or "false")
+                -- ) -- always false
+
                 if (
-                    not playerController.ismastersim and
+                    -- not playerController.ismastersim and
                     action == ACTIONS.WALKTO
                 ) then
                     Sleep(0.2)
@@ -426,22 +433,22 @@ ActionQueuer_applyToSelection = function(self)
 
                 if self._interrupted then break end
 
-                if (
-                    playerController.ismastersim and (
-                        action == ACTIONS.CHOP or
-                        action == ACTIONS.MINE or
-                        action == ACTIONS.HAMMER
-                    )
-                ) then
-                    -- TODO: move to constants
-                    local delay = (14 - 1) * FRAMES
-                    if action == ACTIONS.CHOP and playerInst.prefab == "woodie" then
-                        delay = (10 - 1) * FRAMES
-                    end
-                    Sleep(delay)
-                else
+                -- if (
+                --     playerController.ismastersim and (
+                --         action == ACTIONS.CHOP or
+                --         action == ACTIONS.MINE or
+                --         action == ACTIONS.HAMMER
+                --     )
+                -- ) then
+                --     -- TODO: move to constants
+                --     local delay = (14 - 1) * FRAMES
+                --     if action == ACTIONS.CHOP and playerInst.prefab == "woodie" then
+                --         delay = (10 - 1) * FRAMES
+                --     end
+                --     Sleep(delay)
+                -- else
                     ActionQueuer_waitAction(self, true)
-                end
+                -- end
 
                 -- TODO: only apply to newly appeared entities
                 if (
