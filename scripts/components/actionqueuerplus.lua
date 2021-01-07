@@ -1,6 +1,6 @@
 local constants         = require "actionQueuerPlus/constants"
 local utils             = require "actionQueuerPlus/utils"
-local log               = require "actionQueuerPlus/log"
+local logger            = require "actionQueuerPlus/logger"
 local GeoUtil           = require "actionQueuerPlus/GeoUtil"
 local prepareGetActions = require "actionQueuerPlus/prepareGetActions"
 local mouseAPI          = require "actionQueuerPlus/mouseAPI"
@@ -269,12 +269,12 @@ end
 function ActionQueuer:RepeatRecipe(recipe, skin)
 
     if self._activeThread then
-        log("Error: Unable to repeat recipe: something is already in process")
+        logger.logError("Unable to repeat recipe: something is already in process")
         return
     end
 
     if not self._playerInst.replica.builder then
-        log("Error: Unable to repeat recipe: missing builder")
+        logger.logError("Unable to repeat recipe: missing builder")
         return
     end
 

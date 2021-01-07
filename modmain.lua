@@ -1,6 +1,6 @@
 local keyMap     = require "actionQueuerPlus/keyMap"
 local constants  = require "actionQueuerPlus/constants"
-local log        = require "actionQueuerPlus/log"
+local logger     = require "actionQueuerPlus/logger"
 local asyncUtils = require "actionQueuerPlus/asyncUtils"
 local highlight  = require "actionQueuerPlus/highlight"
 
@@ -19,12 +19,12 @@ local updateInputHandler
 local enableAutoRepeatCraft
 
 local function main()
-    log("main")
+    logger.logDebug("main")
     AddPlayerPostInit(playerPostInit)
 end
 
 playerPostInit = function(playerInst)
-    log("playerPostInit")
+    logger.logDebug("playerPostInit")
     local waitUntil = asyncUtils.getWaitUntil(playerInst)
     waitUntil(
         -- condition
@@ -36,7 +36,7 @@ playerPostInit = function(playerInst)
         end,
         -- action once the condition is met
         function()
-            log("playerPostInit - playercontroller available")
+            logger.logDebug("playerPostInit / playercontroller available")
 
             -- parse config
             local keyToUse          = assert(keyMap[GetModConfigData("keyToUse")])
@@ -55,7 +55,7 @@ playerPostInit = function(playerInst)
                 })
                 updateInputHandler(playerInst, keyToUse, optKeyToInterrupt, interruptOnMove)
             else
-                log("Warning: actionqueuerplus component already exists")
+                logger.logWarning("actionqueuerplus component already exists")
             end
 
             if repeatCraft then
@@ -113,7 +113,7 @@ enableAutoRepeatCraft = function(playerInst, keyToUse)
         not playerInst.replica.builder or
         not playerInst.replica.builder.MakeRecipeFromMenu
     ) then
-        log("Error: unable to enable auto repeat craft")
+        logger.logError("Unable to enable auto repeat craft")
         return
     end
 
