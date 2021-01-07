@@ -154,7 +154,7 @@ local function MouseManager_HandleNewSelectionBox(self)
         self._posQuad.minXminYProjected,
         self._posQuad.maxXminYProjected,
         self._posQuad.minXmaxYProjected,
-        self._posQuad.maxXmaxYProjected,
+        self._posQuad.maxXmaxYProjected
     )
 
     local selectionBoxCenter = GeoUtil.MapScreenPt((xMin + xMax) / 2, (yMin + yMax) / 2)

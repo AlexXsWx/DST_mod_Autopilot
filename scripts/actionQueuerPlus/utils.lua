@@ -193,7 +193,7 @@ function utils.doDeployAction(
     playerInst,
     playerController,
     actionPositionToCopy,
-    activeItem,
+    activeItem
 )
     local actionPosition = Vector3(actionPositionToCopy.x, 0, actionPositionToCopy.z)
 

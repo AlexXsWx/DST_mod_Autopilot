@@ -1,5 +1,5 @@
 local keyMap = {
-    ["ESC"]   = KEY_ESC,
+    ["ESC"]   = KEY_ESCAPE,
     ["Ctrl"]  = KEY_CTRL,
     ["Shift"] = KEY_SHIFT,
     ["Alt"]   = KEY_ALT,
