@@ -4,6 +4,12 @@ local utils = {}
 
 --
 
+function utils.toboolean(arg)
+    return arg and true or false
+end
+
+--
+
 function utils.overrideToCancelIf(obj, property, shouldCancel)
     local originalFn = obj[property]
     obj[property] = function(self, ...)
@@ -35,13 +41,15 @@ end
 --
 
 function utils.testEntity(entity)
-    return toboolean(entity.Transform and entity:IsValid() and not entity:IsInLimbo())
+    return utils.toboolean(
+        entity.Transform and entity:IsValid() and not entity:IsInLimbo()
+    )
 end
 
 -- TODO: move to some more appropriate place, maybe prepareGetActions / actionsHelper?
 
 function utils.shouldIgnorePickupTarget(entity)
-    return toboolean(
+    return utils.toboolean(
         entity.components.mine and not entity.components.mine.inactive or
         entity.components.trap and not entity.components.trap.isset or
         (
@@ -275,7 +283,7 @@ function utils.createSmartDoNextAction(playerInst)
         end
 
         local action = bufferedAction.action
-        local right = toboolean(bufferedAction.isRight)
+        local right = utils.toboolean(bufferedAction.isRight)
 
         if preventRepeatAction(target, action) then
             return false

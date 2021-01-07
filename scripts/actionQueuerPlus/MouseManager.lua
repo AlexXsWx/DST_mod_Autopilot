@@ -6,6 +6,10 @@ local asyncUtils        = require "actionQueuerPlus/asyncUtils"
 local GeoUtil           = require "actionQueuerPlus/GeoUtil"
 local mouseAPI          = require "actionQueuerPlus/mouseAPI"
 
+-- forward declaration
+local MouseManager_OnDown
+local MouseManager_OnUp
+
 local MouseManager = Class(
     function(
         self,
@@ -76,12 +80,12 @@ function MouseManager:Attach(mouseButton)
     end
 
     self._mouseHandlers = {
-        down = mouseAPI.AddMouseButtonHandler(
+        down = mouseAPI.addMouseButtonHandler(
             mouseButton,
             true,
             function() return MouseManager_OnDown(self) end
         ),
-        up = mouseAPI.AddMouseButtonHandler(
+        up = mouseAPI.addMouseButtonHandler(
             mouseButton,
             false,
             function() return MouseManager_OnUp(self) end
@@ -213,7 +217,7 @@ local function MouseManager_OnDown_SelectionBox(self)
     end
 
     local mouseMoved = false
-    assert(self._mouseHandlers).move = mouseAPI.AddMouseMoveHandler(function()
+    assert(self._mouseHandlers).move = mouseAPI.addMouseMoveHandler(function()
         mouseMoved = true
     end)
 
@@ -232,7 +236,7 @@ end
 
 --
 
-local function MouseManager_OnDown(self)
+MouseManager_OnDown = function(self)
     self:Clear()
 
     if not self._isPlayerValid() or self._isAnyMouseManagerSelecting() then return end
@@ -246,7 +250,7 @@ local function MouseManager_OnDown(self)
     end
 end
 
-local function MouseManager_OnUp(self)
+MouseManager_OnUp = function(self)
     if self._selectionBoxActive then
         self._mousePositionCurrent = TheInput:GetScreenPosition()
         MouseManager_HandleNewSelectionBox(self)

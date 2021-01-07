@@ -12,11 +12,11 @@ local mousemove = EventProcessor()
 
 local initialized_handlers = false
 
-function mouseAPI.InitializeHandlerAdders()
+function mouseAPI.initializeHandlerAdders()
 
     if initialized_handlers then return end
 
-    local TheFrontEnd = rawget(GLOBAL, "TheFrontEnd")
+    local TheFrontEnd = rawget(_G, "TheFrontEnd")
     if not TheFrontEnd then return end
 
     -- Override TheFrontEnd.OnMouseButton
@@ -50,12 +50,12 @@ function mouseAPI.InitializeHandlerAdders()
     initialized_handlers = true
 end
 
-function mouseAPI.AddMouseButtonHandler(button, down, fn)
+function mouseAPI.addMouseButtonHandler(button, down, fn)
     local eventProcessor = down and mousedown or mouseup
     eventProcessor:AddEventHandler(button, fn)
 end
 
-function mouseAPI.AddMouseMoveHandler(fn)
+function mouseAPI.addMouseMoveHandler(fn)
     mousemove:AddEventHandler("move", fn)
 end
 

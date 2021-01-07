@@ -9,6 +9,15 @@ local MouseManager      = require "actionQueuerPlus/MouseManager"
 local SelectionManager  = require "actionQueuerPlus/SelectionManager"
 local SelectionWidget   = require "actionQueuerPlus/SelectionWidget"
 
+-- forward declaration
+local ActionQueuer_initializeMouseManagers
+local ActionQueuer_hookMouseManagerEvents
+local ActionQueuer_reconfigureManagers
+local ActionQueuer_waitAction
+local ActionQueuer_autoCollect
+local ActionQueuer_applyToDeploy
+local ActionQueuer_applyToSelection
+
 local ActionQueuer = Class(function(self, playerInst)
 
     -- TODO: figure out what's this for
@@ -73,7 +82,7 @@ end
 --
 
 function ActionQueuer:CanInterrupt()
-    return toboolean(self._activeThread)
+    return utils.toboolean(self._activeThread)
 end
 
 
@@ -133,7 +142,50 @@ end
 
 -- Mouse managers
 
-local function ActionQueuer_HookMouseManagerEvents(self, events, right)
+ActionQueuer_initializeMouseManagers = function(self)
+
+    mouseAPI.initializeHandlerAdders()
+
+    local isAnyMouseManagerSelecting = function()
+        for _, mouseManager in pairs(self._mouseManagers) do
+            if mouseManager:IsSelecting() then
+                return true
+            end
+        end
+        return false
+    end
+
+    local isPlayerValid = function()
+        return self._playerInst:IsValid()
+    end
+
+    -- TODO: 1 manager is enough
+    local mouseButtons = { MOUSEBUTTON_LEFT, MOUSEBUTTON_RIGHT }
+
+    for _, mouseButton in pairs(mouseButtons) do
+
+        local right = (mouseButton == MOUSEBUTTON_RIGHT)
+
+        local canActUponEntity = function(entity)
+            local actions = self._getActions(entity, right)
+            return utils.toboolean(actions[1])
+        end
+
+        local mouseManager = MouseManager(
+            isAnyMouseManagerSelecting,
+            canActUponEntity,
+            isPlayerValid,
+            self._startThread
+        )
+        self._mouseManagers[mouseButton] = mouseManager
+
+        ActionQueuer_hookMouseManagerEvents(self, mouseManager.actionQueuerEvents, right)
+    end
+
+    ActionQueuer_reconfigureManagers(self)
+end
+
+ActionQueuer_hookMouseManagerEvents = function(self, events, right)
 
     -- Selection widget
 
@@ -174,92 +226,17 @@ local function ActionQueuer_HookMouseManagerEvents(self, events, right)
                 ThePlayer and right and
                 utils.canDeployItem(ThePlayer.replica.inventory:GetActiveItem())
             ) then
-                ActionQueuer_ApplyToDeploy(self, optQuad)
+                ActionQueuer_applyToDeploy(self, optQuad)
             else
-                ActionQueuer_ApplyToSelection(self)
+                ActionQueuer_applyToSelection(self)
             end
         end
     )
 end
 
-local function ActionQueuer_initializeMouseManagers(self)
-
-    mouseAPI.InitializeHandlerAdders()
-
-    local isAnyMouseManagerSelecting = function()
-        for _, mouseManager in pairs(self._mouseManagers) do
-            if mouseManager:IsSelecting() then
-                return true
-            end
-        end
-        return false
-    end
-
-    local isPlayerValid = function()
-        return self._playerInst:IsValid()
-    end
-
-    -- TODO: 1 manager is enough
-    local mouseButtons = { MOUSEBUTTON_LEFT, MOUSEBUTTON_RIGHT }
-
-    for _, mouseButton in pairs(mouseButtons) do
-
-        local right = (mouseButton == MOUSEBUTTON_RIGHT)
-
-        local canActUponEntity = function(entity)
-            local actions = self._getActions(entity, right)
-            return toboolean(actions[1])
-        end
-
-        local mouseManager = MouseManager(
-            isAnyMouseManagerSelecting,
-            canActUponEntity,
-            isPlayerValid,
-            self._startThread
-        )
-        self._mouseManagers[mouseButton] = mouseManager
-
-        ActionQueuer_HookMouseManagerEvents(self, mouseManager.actionQueuerEvents, right)
-    end
-
-    ActionQueuer_reconfigureManagers(self)
-end
-
-local function ActionQueuer_reconfigureManagers(self)
+ActionQueuer_reconfigureManagers = function(self)
     for _, mouseManager in pairs(self._mouseManagers) do
         mouseManager:SetKeyToUse(self._config.keyToUse)
-    end
-end
-
--- Action queuing helpers
-
-local function ActionQueuer_WaitAction(waitWork)
-    local playerInst = self._playerInst
-    local playerController = playerInst.components.playercontroller
-    if playerController.locomotor ~= nil then
-        repeat Sleep(0.06) until (
-            self._interrupted or
-            (
-                playerInst:HasTag("idle") and
-                playerInst.sg and
-                playerInst.sg:HasStateTag("idle") and
-                not playerInst:HasTag("moving") and
-                not playerInst.sg:HasStateTag("moving") and
-                not playerController:IsDoingOrWorking()
-            )
-        )
-    else
-        if waitWork then
-            repeat Sleep(FRAMES) until (
-                not playerInst:HasTag("idle") or
-                playerInst:HasTag("moving") or
-                playerController:IsDoingOrWorking()
-            )
-        end
-        repeat Sleep(0.06) until (
-            self._interrupted or 
-            not playerInst:HasTag("moving") and not playerController:IsDoingOrWorking()
-        )
     end
 end
 
@@ -302,48 +279,19 @@ function ActionQueuer:RepeatRecipe(recipe, skin)
             else
                 playerController:RemoteMakeRecipeFromMenu(recipe, skin)
             end
-            ActionQueuer_WaitAction(self)
+            ActionQueuer_waitAction(self)
         end
 
     end)
 end
 
---
-
-local function ActionQueuer_AutoCollect(self, position)
-    local entitiesAround = TheSim:FindEntities(
-        position.x,
-        position.y,
-        position.z,
-        constants.AUTO_COLLECT_RADIUS,
-        nil,
-        constants.UNSELECTABLE_TAGS
-    )
-    local right = false
-    for _, entity in ipairs(entitiesAround) do
-        if utils.testEntity(entity) then
-            local actionPicker = self._playerInst.components.playeractionpicker
-            local actions = actionPicker:GetSceneActions(entity, right)
-            if (
-                actions[1] and (
-                    actions[1].action == ACTIONS.PICK or
-                    actions[1].action == ACTIONS.PICKUP
-                ) and
-                not utils.shouldIgnorePickupTarget(entity)
-            ) then
-                self._selectionManager:SelectEntity(entity, right)
-            end
-        end
-    end
-end
-
 --------------------------------------------------------------------
 
 local function isItemValid(item)
-    return toboolean(item and item.replica and item.replica.inventoryitem)
+    return utils.toboolean(item and item.replica and item.replica.inventoryitem)
 end
 
-local function ActionQueuer_ApplyToDeploy(self, quad)
+ActionQueuer_applyToDeploy = function(self, quad)
 
     if self._activeThread then return end
 
@@ -406,12 +354,12 @@ local function ActionQueuer_ApplyToDeploy(self, quad)
 
             utils.doDeployAction(playerInst, playerController, deployPosition, itemToDeploy)
 
-            ActionQueuer_WaitAction(self)
+            ActionQueuer_waitAction(self)
         end
     end)
 end
 
-local function ActionQueuer_ApplyToSelection(self)
+ActionQueuer_applyToSelection = function(self)
     if (
         self._selectionManager:IsSelectionEmpty() or
         self._activeThread or
@@ -490,7 +438,7 @@ local function ActionQueuer_ApplyToSelection(self)
                     end
                     Sleep(delay)
                 else
-                    ActionQueuer_WaitAction(self, true)
+                    ActionQueuer_waitAction(self, true)
                 end
 
                 -- TODO: only apply to newly appeared entities
@@ -499,7 +447,7 @@ local function ActionQueuer_ApplyToSelection(self)
                     targetPosition and
                     constants.AUTO_COLLECT_ACTIONS[action]
                 ) then
-                    ActionQueuer_AutoCollect(self, targetPosition)
+                    ActionQueuer_autoCollect(self, targetPosition)
                 end
 
             else
@@ -511,6 +459,65 @@ local function ActionQueuer_ApplyToSelection(self)
     end)
 end
 
+ActionQueuer_autoCollect = function(self, position)
+    local entitiesAround = TheSim:FindEntities(
+        position.x,
+        position.y,
+        position.z,
+        constants.AUTO_COLLECT_RADIUS,
+        nil,
+        constants.UNSELECTABLE_TAGS
+    )
+    local right = false
+    for _, entity in ipairs(entitiesAround) do
+        if utils.testEntity(entity) then
+            local actionPicker = self._playerInst.components.playeractionpicker
+            local actions = actionPicker:GetSceneActions(entity, right)
+            if (
+                actions[1] and (
+                    actions[1].action == ACTIONS.PICK or
+                    actions[1].action == ACTIONS.PICKUP
+                ) and
+                not utils.shouldIgnorePickupTarget(entity)
+            ) then
+                self._selectionManager:SelectEntity(entity, right)
+            end
+        end
+    end
+end
+
 --------------------------------------------------------------------
+
+ActionQueuer_waitAction = function(self, optWaitWork)
+    local playerInst = self._playerInst
+    local playerController = playerInst.components.playercontroller
+    if playerController.locomotor ~= nil then
+        repeat Sleep(0.06) until (
+            self._interrupted or
+            (
+                playerInst:HasTag("idle") and
+                playerInst.sg and
+                playerInst.sg:HasStateTag("idle") and
+                not playerInst:HasTag("moving") and
+                not playerInst.sg:HasStateTag("moving") and
+                not playerController:IsDoingOrWorking()
+            )
+        )
+    else
+        if optWaitWork then
+            repeat Sleep(FRAMES) until (
+                not playerInst:HasTag("idle") or
+                playerInst:HasTag("moving") or
+                playerController:IsDoingOrWorking()
+            )
+        end
+        repeat Sleep(0.06) until (
+            self._interrupted or 
+            not playerInst:HasTag("moving") and not playerController:IsDoingOrWorking()
+        )
+    end
+end
+
+--
 
 return ActionQueuer

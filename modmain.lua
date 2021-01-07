@@ -1,6 +1,7 @@
 local keyMap           = require "actionQueuerPlus/keyMap"
 local constants        = require "actionQueuerPlus/constants"
 local logger           = require "actionQueuerPlus/logger"
+local utils            = require "actionQueuerPlus/utils"
 local asyncUtils       = require "actionQueuerPlus/asyncUtils"
 local highlightHelper  = require "actionQueuerPlus/highlightHelper"
 
@@ -10,6 +11,13 @@ Assets = {
     Asset("ATLAS", "images/selection_square.xml"),
     Asset("IMAGE", "images/selection_square.tex"),
 }
+
+--------------------------------------------------------------------
+
+_G = GLOBAL
+
+local TheInput = GLOBAL.TheInput
+local assert = GLOBAL.assert
 
 --------------------------------------------------------------------
 
@@ -33,7 +41,7 @@ onPlayerPostInit = function(playerInst)
             -- local playerInst = ThePlayer
             -- local canProceed = playerInst and playerInst.components.playercontroller
             -- return canProceed
-            return toboolean(playerInst.components.playercontroller)
+            return utils.toboolean(playerInst.components.playercontroller)
         end,
         -- action once the condition is met
         function()
@@ -96,14 +104,14 @@ updateInputHandler = function(playerInst, keyToUse, optKeyToInterrupt, interrupt
 
             if (
                 interruptOnMove and (
-                    TheInput:IsControlPressed(CONTROL_MOVE_UP) or
-                    TheInput:IsControlPressed(CONTROL_MOVE_DOWN) or
-                    TheInput:IsControlPressed(CONTROL_MOVE_LEFT) or
-                    TheInput:IsControlPressed(CONTROL_MOVE_RIGHT)
+                    TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_UP) or
+                    TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_DOWN) or
+                    TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_LEFT) or
+                    TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_RIGHT)
                 ) or
-                TheInput:IsControlPressed(CONTROL_PRIMARY) or
-                TheInput:IsControlPressed(CONTROL_SECONDARY) or
-                TheInput:IsControlPressed(CONTROL_ATTACK)
+                TheInput:IsControlPressed(GLOBAL.CONTROL_PRIMARY) or
+                TheInput:IsControlPressed(GLOBAL.CONTROL_SECONDARY) or
+                TheInput:IsControlPressed(GLOBAL.CONTROL_ATTACK)
             )
             then
                 actionqueuerplus:Interrupt()

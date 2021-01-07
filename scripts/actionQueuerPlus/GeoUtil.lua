@@ -112,7 +112,7 @@ local function getLineParams(p1, p2)
     return {
         orientation = checkLineOrientation(p1, p2),
         directionX = p1.x < p2.x and 1 or -1,
-        directionZ = p1.z < p2.z and 1 or -1
+        directionZ = p1.z < p2.z and 1 or -1,
         k = k,
         b = b,
     }
