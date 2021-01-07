@@ -31,7 +31,7 @@ local ActionQueuer = Class(function(self, playerInst)
 
     self._config = {
         autoCollect = false,
-        keyToUse = nil,
+        keyToQueueActions = nil,
     }
 
 
@@ -87,6 +87,8 @@ end
 
 
 function ActionQueuer:Interrupt()
+
+    -- FIXME: cancel current action (e.g. running to chop a tree)
 
     self._interrupted = true
 
@@ -236,7 +238,7 @@ end
 
 ActionQueuer_reconfigureManagers = function(self)
     for _, mouseManager in pairs(self._mouseManagers) do
-        mouseManager:SetKeyToUse(self._config.keyToUse)
+        mouseManager:SetKeyToQueueActions(self._config.keyToQueueActions)
     end
 end
 

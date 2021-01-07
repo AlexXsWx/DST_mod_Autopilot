@@ -27,7 +27,7 @@ local MouseManager = Class(
 
         -- private
 
-        self._keyToUse = nil
+        self._keyToQueueActions = nil
 
         self._mouseHandlers = nil
 
@@ -46,8 +46,8 @@ local MouseManager = Class(
     end
 )
 
-function MouseManager:SetKeyToUse(keyToUse)
-    self._keyToUse = keyToUse
+function MouseManager:SetKeyToQueueActions(keyToQueueActions)
+    self._keyToQueueActions = keyToQueueActions
 end
 
 function MouseManager:IsSelecting()
@@ -251,8 +251,8 @@ MouseManager_OnDown = function(self)
     if not self._isPlayerValid() or self._isAnyMouseManagerSelecting() then return end
 
     if (
-        not self._keyToUse or
-        TheInput:IsKeyDown(self._keyToUse)
+        not self._keyToQueueActions or
+        TheInput:IsKeyDown(self._keyToQueueActions)
     ) then
         MouseManager_OnDown_CherryPick(self)
         MouseManager_OnDown_SelectionBox(self)

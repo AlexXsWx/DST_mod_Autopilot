@@ -65,8 +65,8 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "keyToUse",
-        label = "Key to use",
+        name = "keyToQueueActions",
+        label = "Key to queue actions",
         options = 
         {
             { description = "Shift", data = "Shift" },
