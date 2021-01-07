@@ -50,18 +50,10 @@ end
 -- TODO: move to some more appropriate place, maybe prepareGetActions / actionsHelper?
 
 function utils.shouldIgnorePickupTarget(entity)
-    -- logger.logDebug(
-    --     "shouldIgnorePickupTarget: ismastersim = " ..
-    --     (ThePlayer and ThePlayer.components.playercontroller.ismastersim and "true" or "false")
-    -- ) -- always false
     return utils.toboolean(
         entity.components.mine and not entity.components.mine.inactive or
         entity.components.trap and not entity.components.trap.isset or
-        (
-            -- ThePlayer and
-            -- not ThePlayer.components.playercontroller.ismastersim and
-            entity:HasTag("trap")
-        )
+        entity:HasTag("trap")
     )
 end
 
@@ -135,15 +127,6 @@ local function doAction(
     target,
     released
 )
-    -- if playerController.ismastersim then
-    --     logger.logDebug("doAction: ismastersim")
-    --     playerInst.components.combat:SetTarget(nil)
-    --     playerController:DoAction(bufferedAction)
-    --     return
-    -- end
-
-    -- logger.logDebug("doAction: not master sim") -- always false
-
     local controlmods = playerController:EncodeControlMods()
 
     local function rpcClick(preview)
@@ -233,49 +216,29 @@ end
 
 -- TODO: move to a better place
 
-local function createPreventRepeatAction(masterSim)
+local function createPreventRepeatAction()
 
-    logger.logDebug(
-        "createPreventRepeatAction: ismastersim = " .. (masterSim and "true" or "false")
-    ) -- always false
-
-    local lastEntity, lastAction --, lastPickEntity
+    local lastEntity, lastAction
 
     local function preventRepeatAction(targetEntity, action)
-        if lastEntity ~= nil and lastEntity == targetEntity then
-
-            -- Don't get stuck turning things on and off repeatedly
-            -- TODO: gate open/close; also move to constants
-            if (
-                lastAction == ACTIONS.TURNOFF and action == ACTIONS.TURNON or
-                lastAction == ACTIONS.TURNON  and action == ACTIONS.TURNOFF
-            ) then
-                return true
-            end
-
-            -- Don't shave same entity twice            
-            if action == ACTIONS.SHAVE then
-                return true
-            end
-
-            if (
+        if (
+            lastEntity ~= nil and lastEntity == targetEntity and (
+                -- Don't get stuck turning things on and off repeatedly
+                -- TODO: gate open/close; also move to constants
+                (
+                    lastAction == ACTIONS.TURNOFF and action == ACTIONS.TURNON or
+                    lastAction == ACTIONS.TURNON  and action == ACTIONS.TURNOFF
+                ) or
+                -- Don't shave same entity twice
+                action == ACTIONS.SHAVE or
+                -- ???
                 lastAction == action and (
                     action == ACTIONS.PICKUP or
                     action == ACTIONS.PICK
                 )
-            ) then
-                -- TODO: figure out what's this for
-                -- if not masterSim then 
-                    return true
-                -- end
-
-                -- if lastPickEntity ~= nil and lastPickEntity == targetEntity then
-                --     return true
-                -- else
-                --     -- TODO: shouldn't this be set regardless if action/target is repeated or not?
-                --     lastPickEntity = targetEntity
-                -- end
-            end
+            )
+        ) then
+            return true
         end
 
         lastEntity = targetEntity
@@ -287,11 +250,9 @@ local function createPreventRepeatAction(masterSim)
     return preventRepeatAction
 end
 
-function utils.createSmartDoNextAction(playerInst)
+function utils.createSmartDoNextAction(playerController)
 
-    local playerController = playerInst.components.playercontroller
-
-    local preventRepeatAction = createPreventRepeatAction(playerController.ismastersim)
+    local preventRepeatAction = createPreventRepeatAction()
 
     local function smartDoNextAction(target, bufferedAction)
 
