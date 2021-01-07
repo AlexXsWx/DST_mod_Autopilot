@@ -1,31 +1,25 @@
 local keyMap           = require "actionQueuerPlus/keyMap"
-local constants        = require "actionQueuerPlus/constants"
 local logger           = require "actionQueuerPlus/logger"
 local utils            = require "actionQueuerPlus/utils"
 local asyncUtils       = require "actionQueuerPlus/asyncUtils"
 local highlightHelper  = require "actionQueuerPlus/highlightHelper"
-
---------------------------------------------------------------------
 
 Assets = {
     Asset("ATLAS", "images/selection_square.xml"),
     Asset("IMAGE", "images/selection_square.tex"),
 }
 
---------------------------------------------------------------------
-
 _G = GLOBAL
 
 local TheInput = GLOBAL.TheInput
 local assert = GLOBAL.assert
 
---------------------------------------------------------------------
-
--- forward declaration
+-- forward declaration --
 local onPlayerPostInit
 local initActionQueuerPlus
 local updateInputHandler
 local enableAutoRepeatCraft
+-------------------------
 
 local function main()
     logger.logDebug("main")
@@ -113,17 +107,6 @@ end
 
 enableAutoRepeatCraft = function(playerInst, keyToQueueActions)
     logger.logDebug("enableAutoRepeatCraft")
-
-    if (
-        not playerInst or
-        not playerInst.replica or
-        not playerInst.replica.builder or
-        not playerInst.replica.builder.MakeRecipeFromMenu
-    ) then
-        logger.logError("Unable to enable auto repeat craft")
-        return
-    end
-
     utils.overrideToCancelIf(
         playerInst.replica.builder,
         "MakeRecipeFromMenu",

@@ -31,15 +31,16 @@ description = (
 -- * Repeat walk along edge?
 -- * Align player position to tile? (walk to) / increment steps? (to support dropping items at exact location)
 
-api_version = 6
+api_version = 6 -- not sure about this one since DS is not supported
 api_version_dst = 10
 
--- Compatible with the RoG and DST
+-- Only DST is supported
+dst_compatible = true
 dont_starve_compatible = false
 shipwrecked_compatible = false
-reign_of_giants_compatible = true
-dst_compatible = true
+reign_of_giants_compatible = false
 
+-- client only local mod
 all_clients_require_mod = false
 client_only_mod = true
 

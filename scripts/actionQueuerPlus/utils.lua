@@ -1,4 +1,5 @@
 local constants = require "actionQueuerPlus/constants"
+local logger    = require "actionQueuerPlus/logger"
 
 local utils = {}
 
@@ -10,10 +11,10 @@ end
 
 --
 
-function utils.overrideToCancelIf(obj, property, shouldCancel)
-    local originalFn = obj[property]
-    obj[property] = function(self, ...)
-        if not shouldCancel(self, ...) then
+function utils.overrideToCancelIf(obj, method, shouldCancelFn)
+    local originalFn = obj[method]
+    obj[method] = function(self, ...)
+        if not shouldCancelFn(self, ...) then
             return originalFn(self, ...)
         end
     end
@@ -31,6 +32,7 @@ function utils.canPlayerDeployAWallAt(playerInst, position)
     )
     local entitiesAroundCount = #entitiesAround
     if entitiesAroundCount > 0 then
+        -- TODO: could it be that playerInst is not the first one?
         if entitiesAround[1] == playerInst then
             entitiesAroundCount = entitiesAroundCount - 1
         end
@@ -57,16 +59,18 @@ function utils.shouldIgnorePickupTarget(entity)
 end
 
 function utils.getItemDeployMode(item)
-    if not item or not item.replica then return nil end
-    local inventoryItem = item.replica.inventoryitem
-    if inventoryItem then
-        if inventoryItem.inst.components.deployable then
-            return inventoryItem.inst.components.deployable.mode
-        end
-        if inventoryItem.classified and inventoryItem.classified.deploymode then
-            return inventoryItem.classified.deploymode:value()
+    if item and item.replica then
+        local inventoryItem = item.replica.inventoryitem
+        if inventoryItem then
+            if inventoryItem.inst.components.deployable then
+                return inventoryItem.inst.components.deployable.mode
+            end
+            if inventoryItem.classified and inventoryItem.classified.deploymode then
+                return inventoryItem.classified.deploymode:value()
+            end
         end
     end
+    logger.logError("Unable to get deploy mode")
     return nil
 end
 
@@ -93,7 +97,10 @@ function utils.getItemFromInventory(inventory, prefabName)
         itemContainer = inventory
     end
 
-    if not itemContainer then return nil end
+    if not itemContainer then
+        logger.logError("Unable to get item container")
+        return nil
+    end
 
     for slot, v in pairs(itemContainer:GetItems() or {}) do
         if slot and v.prefab == prefabName then
@@ -105,7 +112,6 @@ end
 
 --
 
--- TODO: double check if refactoring broke anything
 local function doAction(
     playerController,
     bufferedAction,
@@ -139,7 +145,7 @@ local function doAction(
                 position.x,
                 position.z,
                 target,
-                rotation, -- only for right click?
+                rotation, -- only for right click
                 releasedOrNil,
                 controlmods,
                 canForceOrNil,
