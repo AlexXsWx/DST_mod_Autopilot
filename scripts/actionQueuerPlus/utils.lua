@@ -4,12 +4,6 @@ local utils = {}
 
 --
 
-function utils.cancelThread(thread)
-    if thread then thread:SetList(nil) end
-end
-
---
-
 function utils.overrideToCancelIf(obj, property, shouldCancel)
     local originalFn = obj[property]
     obj[property] = function(self, ...)

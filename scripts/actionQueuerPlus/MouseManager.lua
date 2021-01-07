@@ -2,6 +2,7 @@ require "events"
 
 local constants         = require "actionQueuerPlus/constants"
 local utils             = require "actionQueuerPlus/utils"
+local asyncUtils        = require "actionQueuerPlus/asyncUtils"
 local GeoUtil           = require "actionQueuerPlus/GeoUtil"
 local mouseAPI          = require "actionQueuerPlus/mouseAPI"
 
@@ -57,7 +58,7 @@ function MouseManager:Clear()
     self._previousEntities = {}
 
     if self._handleMouseMoveThread then
-        utils.cancelThread(self._handleMouseMoveThread)
+        asyncUtils.cancelThread(self._handleMouseMoveThread)
         self._handleMouseMoveThread = nil
         self.actionQueuerEvents:HandleEvent("ClearSelectionRectangle")
     end

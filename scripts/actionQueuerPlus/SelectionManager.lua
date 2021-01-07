@@ -1,4 +1,4 @@
-local highlight = require "actionQueuerPlus/highlight"
+local highlightHelper = require "actionQueuerPlus/highlightHelper"
 
 local SelectionManager = Class(function(self)
     -- Maps entities to "right button?" (true or false); nil if entity is not selected
@@ -22,7 +22,6 @@ function SelectionManager:GetSelectedEntitiesIterator()
 end
 
 function SelectionManager:SelectEntity(entity, right)
-
     if not entity:IsValid() or entity:IsInLimbo() then
         self:DeselectEntity(entity)
         return
@@ -30,14 +29,14 @@ function SelectionManager:SelectEntity(entity, right)
 
     if self._rightPerSelectedEntity[entity] == nil then
         self._rightPerSelectedEntity[entity] = right or false
-        highlight.highlightEntity(entity)
+        highlightHelper.highlightEntity(entity)
     end
 end
 
 function SelectionManager:DeselectEntity(entity)
     if self._rightPerSelectedEntity[entity] ~= nil then
         self._rightPerSelectedEntity[entity] = nil
-        highlight.unhighlightEntity(entity)
+        highlightHelper.unhighlightEntity(entity)
     end
 end
 

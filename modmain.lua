@@ -1,8 +1,8 @@
-local keyMap     = require "actionQueuerPlus/keyMap"
-local constants  = require "actionQueuerPlus/constants"
-local logger     = require "actionQueuerPlus/logger"
-local asyncUtils = require "actionQueuerPlus/asyncUtils"
-local highlight  = require "actionQueuerPlus/highlight"
+local keyMap           = require "actionQueuerPlus/keyMap"
+local constants        = require "actionQueuerPlus/constants"
+local logger           = require "actionQueuerPlus/logger"
+local asyncUtils       = require "actionQueuerPlus/asyncUtils"
+local highlightHelper  = require "actionQueuerPlus/highlightHelper"
 
 --------------------------------------------------------------------
 
@@ -14,17 +14,18 @@ Assets = {
 --------------------------------------------------------------------
 
 -- forward declaration
-local playerPostInit
+local onPlayerPostInit
+local initActionQueuerPlus
 local updateInputHandler
 local enableAutoRepeatCraft
 
 local function main()
     logger.logDebug("main")
-    AddPlayerPostInit(playerPostInit)
+    AddPlayerPostInit(onPlayerPostInit)
 end
 
-playerPostInit = function(playerInst)
-    logger.logDebug("playerPostInit")
+onPlayerPostInit = function(playerInst)
+    logger.logDebug("onPlayerPostInit")
     local waitUntil = asyncUtils.getWaitUntil(playerInst)
     waitUntil(
         -- condition
@@ -36,38 +37,44 @@ playerPostInit = function(playerInst)
         end,
         -- action once the condition is met
         function()
-            logger.logDebug("playerPostInit / playercontroller available")
-
-            -- parse config
-            local keyToUse          = assert(keyMap[GetModConfigData("keyToUse")])
-            local optKeyToInterrupt = keyMap[GetModConfigData("keyToInterrupt")] or nil
-            local autoCollect       = GetModConfigData("autoCollect") == "yes"
-            local repeatCraft       = GetModConfigData("repeatCraft") == "yes"
-            local interruptOnMove   = GetModConfigData("interruptOnMove") == "yes"
-
             -- local playerInst = ThePlayer
-
-            if not playerInst.components.actionqueuerplus then
-                playerInst:AddComponent("actionqueuerplus")
-                playerInst.components.actionqueuerplus:Configure({
-                    autoCollect = autoCollect,
-                    keyToUse    = keyToUse,
-                })
-                updateInputHandler(playerInst, keyToUse, optKeyToInterrupt, interruptOnMove)
-            else
-                logger.logWarning("actionqueuerplus component already exists")
-            end
-
-            if repeatCraft then
-                enableAutoRepeatCraft(playerInst, keyToUse)
-            end
-
-            highlight.applyUnhighlightOverride(playerInst)
+            initActionQueuerPlus(playerInst)
         end
     )
 end
 
+initActionQueuerPlus = function(playerInst)
+    logger.logDebug("initActionQueuerPlus")
+
+    highlightHelper.applyUnhighlightOverride(playerInst)
+
+    -- parse config
+    local keyToUse          = assert(keyMap[GetModConfigData("keyToUse")])
+    local optKeyToInterrupt = keyMap[GetModConfigData("keyToInterrupt")] or nil
+    local autoCollect       = GetModConfigData("autoCollect") == "yes"
+    local repeatCraft       = GetModConfigData("repeatCraft") == "yes"
+    local interruptOnMove   = GetModConfigData("interruptOnMove") == "yes"
+
+    -- local playerInst = ThePlayer
+
+    if not playerInst.components.actionqueuerplus then
+        playerInst:AddComponent("actionqueuerplus")
+        playerInst.components.actionqueuerplus:Configure({
+            autoCollect = autoCollect,
+            keyToUse    = keyToUse,
+        })
+        updateInputHandler(playerInst, keyToUse, optKeyToInterrupt, interruptOnMove)
+    else
+        logger.logWarning("actionqueuerplus component already exists")
+    end
+
+    if repeatCraft then
+        enableAutoRepeatCraft(playerInst, keyToUse)
+    end
+end
+
 updateInputHandler = function(playerInst, keyToUse, optKeyToInterrupt, interruptOnMove)
+    logger.logDebug("updateInputHandler")
     utils.overrideToCancelIf(
         playerInst.components.playercontroller,
         "OnControl",
@@ -107,6 +114,8 @@ updateInputHandler = function(playerInst, keyToUse, optKeyToInterrupt, interrupt
 end
 
 enableAutoRepeatCraft = function(playerInst, keyToUse)
+    logger.logDebug("enableAutoRepeatCraft")
+
     if (
         not playerInst or
         not playerInst.replica or

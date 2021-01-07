@@ -1,5 +1,6 @@
 local constants         = require "actionQueuerPlus/constants"
 local utils             = require "actionQueuerPlus/utils"
+local asyncUtils        = require "actionQueuerPlus/asyncUtils"
 local logger            = require "actionQueuerPlus/logger"
 local GeoUtil           = require "actionQueuerPlus/GeoUtil"
 local prepareGetActions = require "actionQueuerPlus/prepareGetActions"
@@ -40,13 +41,11 @@ local ActionQueuer = Class(function(self, playerInst)
     -- cache
 
     self._getActions = prepareGetActions(playerInst)
-    self._startThread = function(fn)
-        return self._playerInst:StartThread(fn)
-    end
+    self._startThread = asyncUtils.getStartThread(self._playerInst)
 
     --
 
-    playerInst:DoTaskInTime(0, function(playerInst)
+    asyncUtils.setImmediate(playerInst, function(playerInst)
         if not (playerInst:IsValid() and playerInst.components.actionqueuerplus) then
             return
         end
@@ -74,7 +73,7 @@ end
 --
 
 function ActionQueuer:CanInterrupt()
-    return not self._interrupted
+    return toboolean(self._activeThread)
 end
 
 
@@ -91,7 +90,7 @@ function ActionQueuer:Interrupt()
     self._selectionWidget:Hide()
 
     if self._activeThread then
-        utils.cancelThread(self._activeThread)
+        asyncUtils.cancelThread(self._activeThread)
         self._activeThread = nil
     end
 end
