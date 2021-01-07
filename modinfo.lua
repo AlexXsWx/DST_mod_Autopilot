@@ -19,14 +19,17 @@ description = (
 -- * Support werebeawer gnawing (trees, tree trunks, boulders)
 -- * Support Wormwood planting seeds
 -- * Support new farming? (use hoe, talk to plants)
--- * Zig-zag planting trees?
--- * Auto pick up seeds / scare birds / wait for butterflies
+-- * Zig-zag planting trees? hex placing?
+-- * Auto pick up seeds / scare birds / wait for butterflies / wait for shadow creatures?
 -- * World-aligned coords?
 -- * Reduced cooldown on chopping burnt trees / digging up tree trunks
 -- * Smarter/faster bulk pick-up?
 -- * Fix gate door infinite loop?
 -- * Option to disable flowers pick-up?
 -- * While action queuer is active, don't auto submit new selection box until it's confirmed
+-- * Repeat walk in direction
+-- * Repeat walk along edge?
+-- * Align player position to tile? (walk to) / increment steps? (to support dropping items at exact location)
 
 api_version = 6
 api_version_dst = 10

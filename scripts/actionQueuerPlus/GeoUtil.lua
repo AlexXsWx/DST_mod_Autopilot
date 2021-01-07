@@ -54,6 +54,14 @@ function GeoUtil.CreateTriangleTester(vecOrigin, vecA, vecB)
 end
 
 -- Returns a function which tests if a point is in a given quadrilateral
+-- AC and BD must be the diagonals, e.g.
+--
+--   D --- C
+--   | \   |
+--   |  \  |
+--   |   \ |
+--   A --- B
+--
 function GeoUtil.CreateQuadrilateralTester(A, B, C, D)
     local tritest1 = GeoUtil.CreateTriangleTester(A, B, C)
     local tritest2 = GeoUtil.CreateTriangleTester(C, D, A)

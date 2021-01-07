@@ -1,10 +1,11 @@
 require "events"
 
-local constants         = require "actionQueuerPlus/constants"
-local utils             = require "actionQueuerPlus/utils"
-local asyncUtils        = require "actionQueuerPlus/asyncUtils"
-local GeoUtil           = require "actionQueuerPlus/GeoUtil"
-local mouseAPI          = require "actionQueuerPlus/mouseAPI"
+local constants  = require "actionQueuerPlus/constants"
+local utils      = require "actionQueuerPlus/utils"
+local asyncUtils = require "actionQueuerPlus/asyncUtils"
+local GeoUtil    = require "actionQueuerPlus/GeoUtil"
+local mouseAPI   = require "actionQueuerPlus/mouseAPI"
+-- local logger     = require "actionQueuerPlus/logger"
 
 -- forward declaration
 local MouseManager_OnDown
@@ -122,6 +123,23 @@ end
 
 local function MouseManager_DispachSelectedEntitiesChanges(self, selectedActableEntities)
 
+    -- TODO: clean up
+    -- local function debugGetTablelength(t)
+    --   local count = 0
+    --   for _ in pairs(t) do count = count + 1 end
+    --   return count
+    -- end
+    -- local debugOldCount = debugGetTablelength(self._previousEntities)
+    -- local debugNewCount = debugGetTablelength(selectedActableEntities)
+    -- if debugOldCount ~= debugNewCount then
+    --     logger.logDebug(
+    --         "selectedActableEntities changed " ..
+    --         debugOldCount ..
+    --         " -> " ..
+    --         debugNewCount
+    --     )
+    -- end
+
     for entity in pairs(self._previousEntities) do
         if not selectedActableEntities[entity] then
             self.actionQueuerEvents:HandleEvent("DeselectEntity", entity)
@@ -139,29 +157,39 @@ end
 
 local function MouseManager_HandleNewSelectionBox(self)
 
-    local xMin = math.min(self._mousePositionStart.x, self._mousePositionCurrent.x)
-    local xMax = math.max(self._mousePositionStart.x, self._mousePositionCurrent.x)
-    local yMin = math.min(self._mousePositionStart.y, self._mousePositionCurrent.y)
-    local yMax = math.max(self._mousePositionStart.y, self._mousePositionCurrent.y)
+    local minX = math.min(self._mousePositionStart.x, self._mousePositionCurrent.x)
+    local maxX = math.max(self._mousePositionStart.x, self._mousePositionCurrent.x)
+    local minY = math.min(self._mousePositionStart.y, self._mousePositionCurrent.y)
+    local maxY = math.max(self._mousePositionStart.y, self._mousePositionCurrent.y)
     
-    self.actionQueuerEvents:HandleEvent("SetSelectionRectangle", xMin, yMin, xMax, yMax)
+    self.actionQueuerEvents:HandleEvent("SetSelectionRectangle", minX, minY, maxX, maxY)
 
     -- TODO: consider keeping 90deg angles
     self._posQuad = {
-        minXminYProjected = GeoUtil.MapScreenPt(xMin, yMin),
-        maxXminYProjected = GeoUtil.MapScreenPt(xMax, yMin),
-        minXmaxYProjected = GeoUtil.MapScreenPt(xMin, yMax), 
-        maxXmaxYProjected = GeoUtil.MapScreenPt(xMax, yMax)
+        --     North
+        -- -Z  _   _ -X
+        --    |\   /|
+        --      \ /
+        --       X     East
+        --      / \
+        --    |/   \|
+        -- +X        +Z
+        -- each tile has a side of 4 units
+        -- geometric placement makes 8x8 points per tile
+        minXminYProjected = GeoUtil.MapScreenPt(minX, minY),
+        maxXminYProjected = GeoUtil.MapScreenPt(maxX, minY),
+        minXmaxYProjected = GeoUtil.MapScreenPt(minX, maxY), 
+        maxXmaxYProjected = GeoUtil.MapScreenPt(maxX, maxY)
     }
 
     local isBounded = GeoUtil.CreateQuadrilateralTester(
         self._posQuad.minXminYProjected,
         self._posQuad.maxXminYProjected,
-        self._posQuad.minXmaxYProjected,
-        self._posQuad.maxXmaxYProjected
+        self._posQuad.maxXmaxYProjected, -- warning: order is different here
+        self._posQuad.minXmaxYProjected
     )
 
-    local selectionBoxCenter = GeoUtil.MapScreenPt((xMin + xMax) / 2, (yMin + yMax) / 2)
+    local selectionBoxCenter = GeoUtil.MapScreenPt((minX + maxX) / 2, (minY + maxY) / 2)
 
     local selectionBoxOuterRadius = math.sqrt(
         math.max(
@@ -171,6 +199,12 @@ local function MouseManager_HandleNewSelectionBox(self)
             selectionBoxCenter:DistSq(self._posQuad.maxXmaxYProjected)
         )
     )
+
+    -- logger.logDebug(
+    --     "selectionBoxCenter = " ..
+    --     selectionBoxCenter.__tostring() .. " @ " ..
+    --     selectionBoxOuterRadius
+    -- )
 
     local entitiesAround = TheSim:FindEntities(
         selectionBoxCenter.x,
@@ -202,7 +236,13 @@ local function MouseManager_OnDown_SelectionBox(self)
 
     self._selectionBoxActive = false
 
-    self._mousePositionStart = TheInput:GetScreenPosition()
+    self._mousePositionStart = mouseAPI.getMousePosition()
+
+    -- logger.logDebug(
+    --     "mouse down @ " ..
+    --     self._mousePositionStart.x .. " : " ..
+    --     self._mousePositionStart.y
+    -- )
     
     self._handleMouseMove = function()
         if not self._selectionBoxActive then
@@ -225,7 +265,7 @@ local function MouseManager_OnDown_SelectionBox(self)
         while self._isPlayerValid() do
             if mouseMoved then
                 mouseMoved = false
-                self._mousePositionCurrent = TheInput:GetScreenPosition()
+                self._mousePositionCurrent = mouseAPI.getMousePosition()
                 self._handleMouseMove()
             end
             Sleep(constants.GET_MOUSE_POS_PERIOD)
@@ -252,8 +292,20 @@ end
 
 MouseManager_OnUp = function(self)
     if self._selectionBoxActive then
-        self._mousePositionCurrent = TheInput:GetScreenPosition()
+        self._mousePositionCurrent = mouseAPI.getMousePosition()
+        -- logger.logDebug(
+        --     "mouse release @ " ..
+        --     self._mousePositionCurrent.x .. " : " ..
+        --     self._mousePositionCurrent.y
+        -- )
         MouseManager_HandleNewSelectionBox(self)
+        -- logger.logDebug(
+        --     "posQuad\n" ..
+        --     self._posQuad.minXminYProjected:__tostring() .. "\n" ..
+        --     self._posQuad.maxXminYProjected:__tostring() .. "\n" ..
+        --     self._posQuad.minXmaxYProjected:__tostring() .. "\n" ..
+        --     self._posQuad.maxXmaxYProjected:__tostring()
+        -- )
     end
     self.actionQueuerEvents:HandleEvent(
         "Apply",

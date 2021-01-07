@@ -59,4 +59,9 @@ function mouseAPI.addMouseMoveHandler(fn)
     mousemove:AddEventHandler("move", fn)
 end
 
+-- In pixels, 0:0 = bottom left corner
+function mouseAPI.getMousePosition()
+    return TheInput:GetScreenPosition()
+end
+
 return mouseAPI
