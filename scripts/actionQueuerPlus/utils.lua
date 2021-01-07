@@ -1,5 +1,4 @@
 local constants = require "actionQueuerPlus/constants"
-local logger    = require "actionQueuerPlus/logger"
 
 local utils = {}
 
@@ -98,15 +97,15 @@ function utils.getItemFromInventory(masterSim, inventory, prefabName)
 
     local itemslots = nil
 
-    if itemContainer.GetItems then 
-        logger.logDebug("getItemFromInventory: GetItems")
+    -- if itemContainer.GetItems then 
+        -- logger.logDebug("getItemFromInventory: GetItems") -- always this
         itemslots = itemContainer:GetItems() 
-    elseif masterSim then
-        logger.logDebug("getItemFromInventory: ismastersim")
-        itemslots = itemContainer.itemslots or itemContainer.slots
-    else
-        logger.logWarning("getItemFromInventory failed to retrieve itemslots")
-    end
+    -- elseif masterSim then
+    --     logger.logDebug("getItemFromInventory: ismastersim")
+    --     itemslots = itemContainer.itemslots or itemContainer.slots
+    -- else
+    --     logger.logWarning("getItemFromInventory failed to retrieve itemslots")
+    -- end
 
     for slot, v in pairs(itemslots or {}) do
         if slot and v.prefab == prefabName then

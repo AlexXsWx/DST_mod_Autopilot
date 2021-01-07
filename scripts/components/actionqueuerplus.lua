@@ -275,14 +275,14 @@ function ActionQueuer:RepeatRecipe(recipe, skin)
                 return
             end
 
-            if playerController.ismastersim and playerInst.components.builder then
-                logger.logDebug("RepeatRecipe: is master sim and builder")
-                playerInst.components.combat:SetTarget(nil)
-                playerInst.components.builder:MakeRecipeFromMenu(recipe, skin)
-            else
-                logger.logDebug("RepeatRecipe: is not master sim or no builder")
+            -- if playerController.ismastersim and playerInst.components.builder then
+            --     logger.logDebug("RepeatRecipe: is master sim and builder")
+            --     playerInst.components.combat:SetTarget(nil)
+            --     playerInst.components.builder:MakeRecipeFromMenu(recipe, skin)
+            -- else
+                -- logger.logDebug("RepeatRecipe: is not master sim or no builder")
                 playerController:RemoteMakeRecipeFromMenu(recipe, skin)
-            end
+            -- end
             ActionQueuer_waitAction(self)
         end
 
