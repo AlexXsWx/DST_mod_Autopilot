@@ -37,17 +37,9 @@ onPlayerPostInit = function(playerInst)
     local waitUntil = asyncUtils.getWaitUntil(playerInst)
     waitUntil(
         -- condition
-        function()
-            -- local playerInst = ThePlayer
-            -- local canProceed = playerInst and playerInst.components.playercontroller
-            -- return canProceed
-            return utils.toboolean(playerInst.components.playercontroller)
-        end,
+        function() return utils.toboolean(playerInst.components.playercontroller) end,
         -- action once the condition is met
-        function()
-            -- local playerInst = ThePlayer
-            initActionQueuerPlus(playerInst)
-        end
+        function() initActionQueuerPlus(playerInst) end
     )
 end
 
@@ -62,8 +54,6 @@ initActionQueuerPlus = function(playerInst)
     local autoCollect       = GetModConfigData("autoCollect") == "yes"
     local repeatCraft       = GetModConfigData("repeatCraft") == "yes"
     local interruptOnMove   = GetModConfigData("interruptOnMove") == "yes"
-
-    -- local playerInst = ThePlayer
 
     if not playerInst.components.actionqueuerplus then
         playerInst:AddComponent("actionqueuerplus")

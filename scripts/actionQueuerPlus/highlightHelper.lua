@@ -9,7 +9,6 @@ function highlightHelper.applyUnhighlightOverride(playerInst)
         Highlight,
         "UnHighlight",
         function(self, ...)
-            -- local playerInst = ThePlayer
             return (
                 playerInst and
                 playerInst.components.actionqueuerplus and

@@ -224,9 +224,8 @@ ActionQueuer_hookMouseManagerEvents = function(self, events, right)
             if (
                 -- TODO: check why originally it was checking for not cherry picking
                 optQuad and
-                -- TODO: shouldn't this be `playerInst`?
-                ThePlayer and right and
-                utils.canDeployItem(ThePlayer.replica.inventory:GetActiveItem())
+                right and
+                utils.canDeployItem(self._playerInst.replica.inventory:GetActiveItem())
             ) then
                 ActionQueuer_applyToDeploy(self, optQuad)
             else
