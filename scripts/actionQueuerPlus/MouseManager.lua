@@ -5,7 +5,6 @@ local utils      = require "actionQueuerPlus/utils"
 local asyncUtils = require "actionQueuerPlus/asyncUtils"
 local GeoUtil    = require "actionQueuerPlus/GeoUtil"
 local mouseAPI   = require "actionQueuerPlus/mouseAPI"
--- local logger     = require "actionQueuerPlus/logger"
 
 -- forward declaration
 local MouseManager_OnDown
@@ -122,24 +121,6 @@ end
 --
 
 local function MouseManager_DispachSelectedEntitiesChanges(self, selectedActableEntities)
-
-    -- TODO: clean up
-    -- local function debugGetTablelength(t)
-    --   local count = 0
-    --   for _ in pairs(t) do count = count + 1 end
-    --   return count
-    -- end
-    -- local debugOldCount = debugGetTablelength(self._previousEntities)
-    -- local debugNewCount = debugGetTablelength(selectedActableEntities)
-    -- if debugOldCount ~= debugNewCount then
-    --     logger.logDebug(
-    --         "selectedActableEntities changed " ..
-    --         debugOldCount ..
-    --         " -> " ..
-    --         debugNewCount
-    --     )
-    -- end
-
     for entity in pairs(self._previousEntities) do
         if not selectedActableEntities[entity] then
             self.actionQueuerEvents:HandleEvent("DeselectEntity", entity)
@@ -200,12 +181,6 @@ local function MouseManager_HandleNewSelectionBox(self)
         )
     )
 
-    -- logger.logDebug(
-    --     "selectionBoxCenter = " ..
-    --     selectionBoxCenter.__tostring() .. " @ " ..
-    --     selectionBoxOuterRadius
-    -- )
-
     local entitiesAround = TheSim:FindEntities(
         selectionBoxCenter.x,
         selectionBoxCenter.y,
@@ -238,12 +213,6 @@ local function MouseManager_OnDown_SelectionBox(self)
 
     self._mousePositionStart = mouseAPI.getMousePosition()
 
-    -- logger.logDebug(
-    --     "mouse down @ " ..
-    --     self._mousePositionStart.x .. " : " ..
-    --     self._mousePositionStart.y
-    -- )
-    
     self._handleMouseMove = function()
         if not self._selectionBoxActive then
             self._selectionBoxActive = (
@@ -293,19 +262,7 @@ end
 MouseManager_OnUp = function(self)
     if self._selectionBoxActive then
         self._mousePositionCurrent = mouseAPI.getMousePosition()
-        -- logger.logDebug(
-        --     "mouse release @ " ..
-        --     self._mousePositionCurrent.x .. " : " ..
-        --     self._mousePositionCurrent.y
-        -- )
         MouseManager_HandleNewSelectionBox(self)
-        -- logger.logDebug(
-        --     "posQuad\n" ..
-        --     self._posQuad.minXminYProjected:__tostring() .. "\n" ..
-        --     self._posQuad.maxXminYProjected:__tostring() .. "\n" ..
-        --     self._posQuad.minXmaxYProjected:__tostring() .. "\n" ..
-        --     self._posQuad.maxXmaxYProjected:__tostring()
-        -- )
     end
     self.actionQueuerEvents:HandleEvent(
         "Apply",
