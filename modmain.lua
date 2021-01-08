@@ -43,35 +43,43 @@ initActionQueuerPlus = function(playerInst)
     highlightHelper.applyUnhighlightOverride(playerInst)
 
     -- parse config
-    local keyToQueueActions = assert(keyMap[GetModConfigData("keyToQueueActions")])
-    local optKeyToInterrupt = keyMap[GetModConfigData("keyToInterrupt")] or nil
-    local autoCollect       = GetModConfigData("autoCollect") == "yes"
-    local repeatCraft       = GetModConfigData("repeatCraft") == "yes"
-    local interruptOnMove   = GetModConfigData("interruptOnMove") == "yes"
+    local keyToQueueActions    = assert(keyMap[GetModConfigData("keyToQueueActions")])
+    local altKeyToQueueActions = keyMap[GetModConfigData("altKeyToQueueActions")] or nil
+    local optKeyToInterrupt    = keyMap[GetModConfigData("keyToInterrupt")] or nil
+    local autoCollect          = GetModConfigData("autoCollect") == "yes"
+    local repeatCraft          = GetModConfigData("repeatCraft") == "yes"
+    local interruptOnMove      = GetModConfigData("interruptOnMove") == "yes"
+
+    local function isQueiengActive()
+        return (
+            TheInput:IsKeyDown(keyToQueueActions) or
+            altKeyToQueueActions and TheInput:IsKeyDown(altKeyToQueueActions)
+        )
+    end
 
     if not playerInst.components.actionqueuerplus then
         playerInst:AddComponent("actionqueuerplus")
         playerInst.components.actionqueuerplus:Configure({
-            autoCollect       = autoCollect,
-            keyToQueueActions = keyToQueueActions,
+            autoCollect     = autoCollect,
+            isQueiengActive = isQueiengActive,
         })
-        updateInputHandler(playerInst, keyToQueueActions, optKeyToInterrupt, interruptOnMove)
+        updateInputHandler(playerInst, isQueiengActive, optKeyToInterrupt, interruptOnMove)
     else
         logger.logWarning("actionqueuerplus component already exists")
     end
 
     if repeatCraft then
-        enableAutoRepeatCraft(playerInst, keyToQueueActions)
+        enableAutoRepeatCraft(playerInst, isQueiengActive)
     end
 end
 
-updateInputHandler = function(playerInst, keyToQueueActions, optKeyToInterrupt, interruptOnMove)
+updateInputHandler = function(playerInst, isQueiengActive, optKeyToInterrupt, interruptOnMove)
     logger.logDebug("updateInputHandler")
     utils.overrideToCancelIf(
         playerInst.components.playercontroller,
         "OnControl",
         function(self, ...)
-            if TheInput:IsKeyDown(keyToQueueActions) then
+            if isQueiengActive() then
                 return true
             end
 
@@ -105,13 +113,13 @@ updateInputHandler = function(playerInst, keyToQueueActions, optKeyToInterrupt, 
     )
 end
 
-enableAutoRepeatCraft = function(playerInst, keyToQueueActions)
+enableAutoRepeatCraft = function(playerInst, isQueiengActive)
     logger.logDebug("enableAutoRepeatCraft")
     utils.overrideToCancelIf(
         playerInst.replica.builder,
         "MakeRecipeFromMenu",
         function(self, recipe, skin)
-            if TheInput:IsKeyDown(keyToQueueActions) and recipe.placer == nil then
+            if isQueiengActive() and recipe.placer == nil then
                 playerInst.components.actionqueuerplus:RepeatRecipe(recipe, skin)
                 return true
             end

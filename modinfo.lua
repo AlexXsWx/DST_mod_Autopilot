@@ -81,6 +81,22 @@ configuration_options = {
         default = "Shift"
     },
     {
+        name = "altKeyToQueueActions",
+        label = "Alternative key to queue actions",
+        options = 
+        {
+            { description = "None",  data = "none"  },
+            { description = "Shift", data = "Shift" },
+            { description = "Alt",   data = "Alt"   },
+            { description = "Z",     data = "Z"     },
+            { description = "X",     data = "X"     },
+            { description = "C",     data = "C"     },
+            { description = "V",     data = "V"     },
+            { description = "B",     data = "B"     },
+        },
+        default = "none"
+    },
+    {
         name = "keyToInterrupt",
         label = "Explicit key to interrupt",
         options = 

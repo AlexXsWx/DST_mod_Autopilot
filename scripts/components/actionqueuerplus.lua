@@ -31,7 +31,7 @@ local ActionQueuer = Class(function(self, playerInst)
 
     self._config = {
         autoCollect = false,
-        keyToQueueActions = nil,
+        isQueiengActive = nil,
     }
 
 
@@ -237,7 +237,7 @@ end
 
 ActionQueuer_reconfigureManagers = function(self)
     for _, mouseManager in pairs(self._mouseManagers) do
-        mouseManager:SetKeyToQueueActions(self._config.keyToQueueActions)
+        mouseManager:setIsQueiengActive(self._config.isQueiengActive)
     end
 end
 
