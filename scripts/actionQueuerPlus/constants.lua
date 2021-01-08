@@ -49,6 +49,10 @@ local constants = {
 
         [ACTIONS.EXTINGUISH] = true,
         [ACTIONS.NET] = true,
+
+        -- New actions
+        -- (e.g. heal abigal using glands)
+        [ACTIONS.HEAL] = true,
     },
 
     ALLOWED_DEPLOY_MODES = {
