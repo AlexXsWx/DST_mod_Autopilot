@@ -18,34 +18,37 @@ local constants = {
     UNSELECTABLE_TAGS = {"FX", "NOCLICK", "DECOR", "INLIMBO"},
 
     ALLOWED_ACTIONS = {
-        [ACTIONS.REPAIR] = true,
-        [ACTIONS.CHOP] = true,
-        [ACTIONS.COOK] = true,
         [ACTIONS.PICK] = true,
         [ACTIONS.PICKUP] = true,
+        [ACTIONS.TAKEITEM] = true,
+        [ACTIONS.HARVEST] = true,
+
+        [ACTIONS.CHOP] = true,
         [ACTIONS.MINE] = true,
         [ACTIONS.DIG] = true,
-        [ACTIONS.GIVE] = true,
-        [ACTIONS.DRY] = true,
-        [ACTIONS.EXTINGUISH] = true,
-        [ACTIONS.BAIT] = true,
-        [ACTIONS.CHECKTRAP] = true,
-        [ACTIONS.HARVEST] = true,
-        [ACTIONS.SHAVE] = true,
-        [ACTIONS.NET] = true,
-        [ACTIONS.FERTILIZE] = true,
         [ACTIONS.HAMMER] = true,
-        [ACTIONS.RESETMINE] = true,
-        [ACTIONS.ACTIVATE] = true,
-        [ACTIONS.TURNON] = true,
-        [ACTIONS.TURNOFF] = true,
+        [ACTIONS.SHAVE] = true,
+        [ACTIONS.REPAIR] = true,
+        [ACTIONS.COOK] = true,
+        
+        [ACTIONS.GIVE] = true,
         [ACTIONS.USEITEM] = true,
-        [ACTIONS.TAKEITEM] = true,
+        [ACTIONS.BAIT] = true,
+        [ACTIONS.DRY] = true,
+        [ACTIONS.FERTILIZE] = true,
         [ACTIONS.PLANT] = true,
         [ACTIONS.ADDFUEL] = true,
         [ACTIONS.ADDWETFUEL] = true,
-        -- TODO: add more actions
-        -- [ACTIONS.REPAIR_LEAK] = true,
+
+        [ACTIONS.CHECKTRAP] = true,
+        [ACTIONS.RESETMINE] = true,
+
+        [ACTIONS.ACTIVATE] = true,
+        [ACTIONS.TURNON] = true,
+        [ACTIONS.TURNOFF] = true,
+
+        [ACTIONS.EXTINGUISH] = true,
+        [ACTIONS.NET] = true,
     },
 
     ALLOWED_DEPLOY_MODES = {
