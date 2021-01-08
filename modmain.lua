@@ -79,6 +79,10 @@ updateInputHandler = function(playerInst, isQueiengActive, optKeyToInterrupt, in
         playerInst.components.playercontroller,
         "OnControl",
         function(self, ...)
+            if playerInst.HUD:IsMapScreenOpen() then
+                return false
+            end
+
             if isQueiengActive() then
                 return true
             end
