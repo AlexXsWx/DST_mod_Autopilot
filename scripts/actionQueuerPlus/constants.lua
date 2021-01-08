@@ -51,6 +51,7 @@ local constants = {
         [ACTIONS.NET] = true,
 
         -- New actions
+        [ACTIONS.REPAIR_LEAK] = true,
         -- (e.g. heal abigal using glands)
         [ACTIONS.HEAL] = true,
     },

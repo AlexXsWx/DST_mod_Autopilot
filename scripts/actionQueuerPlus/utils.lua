@@ -227,7 +227,9 @@ local function createPreventRepeatAction()
                 -- ???
                 lastAction == action and (
                     action == ACTIONS.PICKUP or
-                    action == ACTIONS.PICK
+                    action == ACTIONS.PICK or
+                    -- Without this, character attempts to repair each leak twice
+                    action == ACTIONS.REPAIR_LEAK
                 )
             )
         ) then

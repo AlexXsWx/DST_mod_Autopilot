@@ -15,7 +15,6 @@ description = (
 )
 
 -- TODO:
--- * Support patching boats (boat patch; trusty tape)
 -- * Support werebeawer gnawing (trees, tree trunks, boulders)
 -- * Support Wormwood planting seeds
 -- * Support new farming? (use hoe, talk to plants)
