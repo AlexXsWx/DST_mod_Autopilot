@@ -126,7 +126,7 @@ configuration_options = {
             { description = "ESC",   data = "ESC"  },
             { description = "Ctrl",  data = "Ctrl" },
         },
-        default = "none"
+        default = "ESC"
     },
     {
         name = "interruptOnMove",
@@ -146,7 +146,7 @@ configuration_options = {
             { description = "no",  data = "no"  },
             { description = "yes", data = "yes" },
         },
-        default = "yes"
+        default = "no"
     },
 }
 
