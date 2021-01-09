@@ -23,7 +23,6 @@ description = (
 -- * World-aligned coords?
 -- * Reduced cooldown on chopping burnt trees / digging up tree trunks
 -- * Smarter/faster bulk pick-up?
--- * Fix gate door infinite loop?
 -- * Option to disable carrots/mandrakes pick-up?
 -- * Repeat walk in direction
 -- * Repeat walk along edge?
@@ -33,7 +32,6 @@ description = (
 -- * Don't intrerupt action with LMB if user clicks on crafting tab?
 -- * Separate selection box actions and pick actions
 -- * UI to change config on the fly
--- * Fix bug when planting a mushroom to mushroom planter that it gets auto collected
 
 api_version = 6 -- not sure about this one since DS is not supported
 api_version_dst = 10

@@ -224,11 +224,10 @@ local function createPreventRepeatAction()
         if (
             lastEntity ~= nil and lastEntity == targetEntity and (
                 -- Don't get stuck turning things on and off repeatedly
-                -- TODO: gate open/close; also move to constants
-                (
-                    lastAction == ACTIONS.TURNOFF and action == ACTIONS.TURNON or
-                    lastAction == ACTIONS.TURNON  and action == ACTIONS.TURNOFF
-                ) or
+                lastAction == ACTIONS.TURNOFF and action == ACTIONS.TURNON or
+                lastAction == ACTIONS.TURNON  and action == ACTIONS.TURNOFF or
+                -- Fix for mushroom farm
+                lastAction == ACTIONS.GIVE and action == ACTIONS.HARVEST or
                 -- Don't shave same entity twice
                 action == ACTIONS.SHAVE or
                 -- ???
@@ -236,7 +235,9 @@ local function createPreventRepeatAction()
                     action == ACTIONS.PICKUP or
                     action == ACTIONS.PICK or
                     -- Without this, character attempts to repair each leak twice
-                    action == ACTIONS.REPAIR_LEAK
+                    action == ACTIONS.REPAIR_LEAK or
+                    -- Fix for gate door
+                    action == ACTIONS.ACTIVATE
                 )
             )
         ) then
