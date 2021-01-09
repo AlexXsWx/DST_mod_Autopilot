@@ -13,6 +13,10 @@ function SelectionManager:IsSelectedWithRight(entity)
     return self._rightPerSelectedEntity[entity] == true
 end
 
+function SelectionManager:shouldKeepHighlight(entity)
+    return self:IsEntitySelected(entity)
+end
+
 function SelectionManager:IsEntitySelected(entity)
     return self._rightPerSelectedEntity[entity] ~= nil
 end

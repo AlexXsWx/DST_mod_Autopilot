@@ -10,7 +10,6 @@ local SelectionManager  = require "actionQueuerPlus/SelectionManager"
 
 -- forward declaration
 local ActionQueuer_initializeMouseManagers
-local ActionQueuer_hookMouseManagerEvents
 local ActionQueuer_reconfigureManagers
 local ActionQueuer_waitAction
 local ActionQueuer_autoCollect
@@ -78,8 +77,8 @@ end
 
 --
 
-function ActionQueuer:IsEntitySelected(entity)
-    return self._selectionManager:IsEntitySelected(entity)
+function ActionQueuer:shouldKeepHighlight(entity)
+    return self._selectionManager:shouldKeepHighlight(entity)
 end
 
 --
@@ -95,11 +94,11 @@ function ActionQueuer:Interrupt()
 
     self._interrupted = true
 
-    self._selectionManager:DeselectAllEntities()
-
     for _, mouseManager in pairs(self._mouseManagers) do
         mouseManager:Clear()
     end
+
+    self._selectionManager:DeselectAllEntities()
 
     if self._activeThread then
         asyncUtils.cancelThread(self._activeThread)
@@ -172,43 +171,7 @@ ActionQueuer_initializeMouseManagers = function(self)
             return utils.toboolean(actions[1])
         end
 
-        local mouseManager = MouseManager(
-            isAnyMouseManagerSelecting,
-            canActUponEntity,
-            isPlayerValid,
-            self._startThread
-        )
-        self._mouseManagers[mouseButton] = mouseManager
-
-        ActionQueuer_hookMouseManagerEvents(self, mouseManager.actionQueuerEvents, right)
-    end
-
-    ActionQueuer_reconfigureManagers(self)
-end
-
-ActionQueuer_hookMouseManagerEvents = function(self, events, right)
-
-    -- Selection manager
-
-    events:AddEventHandler(
-        "SelectEntity",
-        function(entity) self._selectionManager:SelectEntity(entity, right) end
-    )
-    events:AddEventHandler(
-        "DeselectEntity",
-        function(entity) self._selectionManager:DeselectEntity(entity) end
-    )
-
-    events:AddEventHandler(
-        "ToggleEntitySelection",
-        function(entity) self._selectionManager:ToggleEntitySelection(entity, right) end
-    )
-
-    -- Action
-
-    events:AddEventHandler(
-        "Apply",
-        function(optQuad)
+        local function apply(optQuad)
             if (
                 -- TODO: check why originally it was checking for not cherry picking
                 optQuad and
@@ -220,7 +183,19 @@ ActionQueuer_hookMouseManagerEvents = function(self, events, right)
                 ActionQueuer_applyToSelection(self)
             end
         end
-    )
+
+        local mouseManager = MouseManager(
+            self._selectionManager,
+            isAnyMouseManagerSelecting,
+            canActUponEntity,
+            isPlayerValid,
+            self._startThread,
+            apply,
+        )
+        self._mouseManagers[mouseButton] = mouseManager
+    end
+
+    ActionQueuer_reconfigureManagers(self)
 end
 
 ActionQueuer_reconfigureManagers = function(self)

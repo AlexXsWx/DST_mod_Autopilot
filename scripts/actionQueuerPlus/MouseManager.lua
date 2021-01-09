@@ -1,5 +1,3 @@
-require "events"
-
 local constants       = require "actionQueuerPlus/constants"
 local utils           = require "actionQueuerPlus/utils"
 local asyncUtils      = require "actionQueuerPlus/asyncUtils"
@@ -14,19 +12,23 @@ local MouseManager_OnUp
 local MouseManager = Class(
     function(
         self,
+        selectionManager,
         isAnyMouseManagerSelecting,
         canActUponEntity,
         isPlayerValid,
-        startThread
+        startThread,
+        applyFn
     )
         -- save dependencies
 
+        self._selectionManager           = selectionManager
         self._isAnyMouseManagerSelecting = isAnyMouseManagerSelecting
         self._canActUponEntity           = canActUponEntity
         self._isPlayerValid              = isPlayerValid
         self._startThread                = startThread
+        self._applyFn                    = applyFn
 
-        -- private
+        --
 
         self._isQueiengActive = nil
 
@@ -42,10 +44,6 @@ local MouseManager = Class(
         self._mousePositionCurrent = nil
 
         self._selectionWidget = nil
-
-        -- public
-
-        self.actionQueuerEvents = EventProcessor()
     end
 )
 
@@ -84,6 +82,8 @@ function MouseManager:Attach(widgetParent, mouseButton)
     if self._mouseHandlers then
         return
     end
+
+    self._right = (mouseButton == MOUSEBUTTON_RIGHT)
 
     self._selectionWidget = SelectionWidget(widgetParent)
 
@@ -125,7 +125,7 @@ local function MouseManager_OnDown_CherryPick(self)
 
     for _, entity in ipairs(entities) do
         if utils.testEntity(entity) and self._canActUponEntity(entity) then
-            self.actionQueuerEvents:HandleEvent("ToggleEntitySelection", entity)
+            self._selectionManager:ToggleEntitySelection(entity, self._right)
             return
         end
     end
@@ -136,13 +136,13 @@ end
 local function MouseManager_DispachSelectedEntitiesChanges(self, selectedActableEntities)
     for entity in pairs(self._previousEntities) do
         if not selectedActableEntities[entity] then
-            self.actionQueuerEvents:HandleEvent("DeselectEntity", entity)
+            self._selectionManager:DeselectEntity(entity)
         end
     end
 
     for entity in pairs(selectedActableEntities) do
         if not self._previousEntities[entity] then
-            self.actionQueuerEvents:HandleEvent("SelectEntity", entity)
+            self._selectionManager:SelectEntity(entity, self._right)
         end
     end
 
@@ -276,11 +276,8 @@ MouseManager_OnUp = function(self)
         self._mousePositionCurrent = mouseAPI.getMousePosition()
         MouseManager_HandleNewSelectionBox(self)
     end
-    self.actionQueuerEvents:HandleEvent(
-        "Apply",
-        -- can be nil, that's fine
-        self._posQuad
-    )
+    -- _posQuad can be nil, that's fine
+    self._applyFn(self._posQuad)
     self:Clear()
 end
 

@@ -12,7 +12,7 @@ function highlightHelper.applyUnhighlightOverride(playerInst)
             return (
                 playerInst and
                 playerInst.components.actionqueuerplus and
-                playerInst.components.actionqueuerplus:IsEntitySelected(self.inst)
+                playerInst.components.actionqueuerplus:shouldKeepHighlight(self.inst)
             )
         end
     )
