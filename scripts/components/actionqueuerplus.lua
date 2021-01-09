@@ -135,12 +135,12 @@ ActionQueuer_initializeMouseManagers = function(self)
         return self._playerInst:IsValid()
     end
 
-    local canActUponEntity = function(entity, right)
-        local actions = self._getActions(entity, right)
+    local canActUponEntity = function(entity, right, cherrypicking)
+        local actions = self._getActions(entity, right, cherrypicking)
         return utils.toboolean(actions[1])
     end
 
-    local apply = function(optSelectionBoxProjected, right)
+    local apply = function(optSelectionBoxProjected, right, cherrypicking)
         if (
             -- TODO: check why originally it was checking for not cherry picking
             optSelectionBoxProjected and
@@ -149,7 +149,7 @@ ActionQueuer_initializeMouseManagers = function(self)
         ) then
             ActionQueuer_applyToDeploy(self, optSelectionBoxProjected)
         else
-            ActionQueuer_applyToSelection(self)
+            ActionQueuer_applyToSelection(self, cherrypicking)
         end
     end
 
@@ -275,7 +275,7 @@ ActionQueuer_applyToDeploy = function(self, selectionBoxProjected)
     end)
 end
 
-ActionQueuer_applyToSelection = function(self)
+ActionQueuer_applyToSelection = function(self, cherrypicking)
     if (
         self._selectionManager:IsSelectionEmpty() or
         self._activeThread or
@@ -323,7 +323,8 @@ ActionQueuer_applyToSelection = function(self)
 
             local actions = self._getActions(
                 target,
-                self._selectionManager:IsSelectedWithRight(target)
+                self._selectionManager:IsSelectedWithRight(target),
+                cherrypicking
             )
             local targetPosition = target:GetPosition()
 

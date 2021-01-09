@@ -18,7 +18,7 @@ local special_cases = {
     [ACTIONS.DRY]        = isLeft,
     [ACTIONS.PLANT]      = isLeft,
 
-    [ACTIONS.PICK] = function(target, right, optConfig)
+    [ACTIONS.PICK] = function(target, right, cherrypicking, optConfig)
         return not (
             right or
             -- TODO: also when autocollecting
@@ -42,20 +42,24 @@ local special_cases = {
     [ACTIONS.PICKUP] = function(target, right)
         return not (right or utils.shouldIgnorePickupTarget(target))
     end,
+
+    [ACTIONS.EAT] = function(target, right, cherrypicking, optConfig)
+        return cherrypicking
+    end,
 }
 
 ----------------------------------------------------------------
 
 -- WARNING: this also mutates the given actions by setting `isRight` property
-local function filterActions(actions, target, right, optConfig)
+local function filterActions(actions, target, right, cherrypicking, optConfig)
     local nactions = {}
     for i, v in ipairs(actions) do
         if (
             v ~= nil and
             constants.ALLOWED_ACTIONS[v.action] and
             (
-                not special_cases[v.action] or
-                (special_cases[v.action] and special_cases[v.action](target, right, optConfig))
+                special_cases[v.action] == nil or
+                special_cases[v.action](target, right, cherrypicking, optConfig)
             )
         ) then
             -- Mutation
@@ -67,7 +71,7 @@ local function filterActions(actions, target, right, optConfig)
 end
 
 local function prepareGetActions(playerInst, optConfig)
-    local function getActions(target, right)
+    local function getActions(target, right, cherrpicking)
         local actions = nil
 
         local useitem   = playerInst.replica.inventory:GetActiveItem()
@@ -93,7 +97,7 @@ local function prepareGetActions(playerInst, optConfig)
         end
         actions = actions or {}
 
-        return filterActions(actions, target, right, optConfig)
+        return filterActions(actions, target, right, cherrpicking, optConfig)
     end
     return getActions
 end

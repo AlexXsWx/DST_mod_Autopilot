@@ -181,8 +181,13 @@ MouseManager_OnUp = function(self, mouseButton)
         MouseManager_CherryPick(self, right)
     end
 
-    -- selectionBoxProjected can be nil, that's fine
-    self._applyFn(self._session.selectionBoxProjected, right)
+    local cherrypicking = not self._session.selectionBoxProjected
+    self._applyFn(
+        -- selectionBoxProjected can be nil, that's fine
+        self._session.selectionBoxProjected,
+        right,
+        cherrypicking
+    )
 
     self:Clear()
 end
@@ -193,7 +198,7 @@ MouseManager_CherryPick = function(self, right)
     local entities = TheInput:GetAllEntitiesUnderMouse()
 
     for _, entity in ipairs(entities) do
-        if utils.testEntity(entity) and self._canActUponEntity(entity, right) then
+        if utils.testEntity(entity) and self._canActUponEntity(entity, right, true) then
             self._selectionManager:ToggleEntitySelection(entity, right)
             return
         end
@@ -300,7 +305,7 @@ MouseManager_UpdateSelectionBox = function(self, right)
         if (
             utils.testEntity(entity) and
             isBounded(entity:GetPosition()) and
-            self._canActUponEntity(entity, right) 
+            self._canActUponEntity(entity, right, false)
         ) then
             actableEntitiesWithinSelectionBox[entity] = true
         end
