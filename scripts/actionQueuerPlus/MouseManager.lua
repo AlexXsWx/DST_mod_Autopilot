@@ -112,8 +112,7 @@ MouseManager_CreateNewSession = function(self, mouseButton, mousePosition)
         mousePositionCurrent = mousePosition,
         posQuad = nil,
         selectionBoxActive = false,
-        handleMouseMoveThread = nil,
-        mouseMoveHandler = nil,
+        updateSelectionBoxThread = nil,
         entities = {},
     }
     return session
@@ -124,14 +123,9 @@ MouseManager_ClearSession = function(self)
 
     self._selectionManager:PreviewEntitiesSelection({})
 
-    if self._session.handleMouseMoveThread then
-        asyncUtils.cancelThread(self._session.handleMouseMoveThread)
-        self._session.handleMouseMoveThread = nil
-    end
-
-    if self._session.mouseMoveHandler then
-        self._session.mouseMoveHandler:Remove()
-        self._session.mouseMoveHandler = nil
+    if self._session.updateSelectionBoxThread then
+        asyncUtils.cancelThread(self._session.updateSelectionBoxThread)
+        self._session.updateSelectionBoxThread = nil
     end
 
     self._session = nil
@@ -202,7 +196,7 @@ end
 --
 
 MouseManager_StartSelectionBox = function(self, right)
-    local handleMouseMove = function()
+    local updateSelectionBox = function()
         if not self._session.selectionBoxActive then
             self._session.selectionBoxActive = (
                 constants.MANHATTAN_DISTANCE_TO_START_BOX_SELECTION < GeoUtil.ManhattanDistance(
@@ -216,18 +210,11 @@ MouseManager_StartSelectionBox = function(self, right)
         end
     end
 
-    local mouseMoved = false
-    self._session.mouseMoveHandler = mouseAPI.addMouseMoveHandler(function()
-        mouseMoved = true
-    end)
-
-    self._session.handleMouseMoveThread = self._startThread(function()
+    self._session.updateSelectionBoxThread = self._startThread(function()
         while self._isPlayerValid() do
-            if mouseMoved then
-                mouseMoved = false
-                self._session.mousePositionCurrent = mouseAPI.getMousePosition()
-                handleMouseMove()
-            end
+            self._session.mousePositionCurrent = mouseAPI.getMousePosition()
+            updateSelectionBox()
+            -- TODO: separate UI feedback and entities finding logic for more fluid user feedback
             Sleep(constants.GET_MOUSE_POS_PERIOD)
         end
         self:Clear()
