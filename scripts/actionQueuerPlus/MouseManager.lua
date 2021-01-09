@@ -5,9 +5,11 @@ local GeoUtil         = require "actionQueuerPlus/GeoUtil"
 local mouseAPI        = require "actionQueuerPlus/mouseAPI"
 local SelectionWidget = require "actionQueuerPlus/SelectionWidget"
 
--- forward declaration
+-- forward declaration --
+local MouseManager_Clear
 local MouseManager_OnDown
 local MouseManager_OnUp
+-------------------------
 
 local MouseManager = Class(
     function(
@@ -19,20 +21,16 @@ local MouseManager = Class(
         applyFn
     )
         -- save dependencies
-
         self._selectionManager = selectionManager
         self._canActUponEntity = canActUponEntity
         self._isPlayerValid    = isPlayerValid
         self._startThread      = startThread
         self._applyFn          = applyFn
-
+        -- this one is set later
+        self._isQueuingKeyDown = nil
         --
 
-        self._attached = false
-
-        self._currentButton = nil
-
-        self._isQueuingKeyDown = nil
+        self._buttonToHandle = nil
 
         self._mouseHandlers = nil
 
@@ -41,6 +39,7 @@ local MouseManager = Class(
         self._posQuad = nil
         self._selectionBoxActive = false
         self._previousEntities = {}
+
         self._mousePositionStart = nil
         self._mousePositionCurrent = nil
 
@@ -52,10 +51,16 @@ function MouseManager:setQueuingKeyDownGetter(isQueuingKeyDown)
     self._isQueuingKeyDown = isQueuingKeyDown
 end
 
-function MouseManager:Clear(optSoft)
+--
 
-    if not optSoft then
-        self._currentButton = nil
+function MouseManager:CancelCurrentAction(optSoft)
+    MouseManager_Clear(self, false)
+end
+
+MouseManager_Clear = function(self, hard)
+
+    if hard then
+        self._buttonToHandle = nil
     end
 
     self._posQuad = nil
@@ -67,6 +72,7 @@ function MouseManager:Clear(optSoft)
         asyncUtils.cancelThread(self._handleMouseMoveThread)
         self._handleMouseMoveThread = nil
     end
+
     if self._mouseHandlers and self._mouseHandlers.move then
         self._mouseHandlers.move:Remove()
         self._mouseHandlers.move = nil
@@ -77,12 +83,17 @@ function MouseManager:Clear(optSoft)
     end
 end
 
+--
+
+local function MouseManager_isAttached(self)
+    return utils.toboolean(self._selectionWidget)
+end
+
 function MouseManager:Attach(widgetParent)
 
-    if self._attached then
-        return
+    if MouseManager_isAttached(self) then
+        self:Detach()
     end
-    self._attached = true
 
     self._selectionWidget = SelectionWidget(widgetParent)
 
@@ -107,12 +118,11 @@ end
 
 function MouseManager:Detach()
 
-    if not self._attached then
+    if not MouseManager_isAttached(self) then
         return
     end
-    self._attached = false
 
-    self:Clear()
+    MouseManager_Clear(self, true)
 
     for _, handler in pairs(self._mouseHandlers) do
         handler:Remove()
@@ -248,7 +258,7 @@ local function MouseManager_OnDown_SelectionBox(self, right)
     end
 
     local mouseMoved = false
-    assert(self._mouseHandlers).move = mouseAPI.addMouseMoveHandler(function()
+    self._mouseHandlers.move = mouseAPI.addMouseMoveHandler(function()
         mouseMoved = true
     end)
 
@@ -261,7 +271,7 @@ local function MouseManager_OnDown_SelectionBox(self, right)
             end
             Sleep(constants.GET_MOUSE_POS_PERIOD)
         end
-        self:Clear()
+        MouseManager_Clear(self, true)
     end)
 end
 
@@ -269,12 +279,12 @@ end
 
 MouseManager_OnDown = function(self, mouseButton)
 
-    if self._currentButton ~= nil then
+    if self._buttonToHandle ~= nil then
         return
     end
-    self._currentButton = mouseButton
+    self._buttonToHandle = mouseButton
 
-    self:Clear(true)
+    MouseManager_Clear(self, false)
 
     if (
         self._isPlayerValid() and
@@ -290,7 +300,7 @@ end
 
 MouseManager_OnUp = function(self, mouseButton)
 
-    if self.self._currentButton ~= nil and self._currentButton ~= mouseButton then
+    if self.self._buttonToHandle ~= nil and self._buttonToHandle ~= mouseButton then
         return
     end
 
@@ -302,7 +312,7 @@ MouseManager_OnUp = function(self, mouseButton)
     end
     -- _posQuad can be nil, that's fine
     self._applyFn(self._posQuad, right)
-    self:Clear()
+    MouseManager_Clear(self, true)
 end
 
 --
