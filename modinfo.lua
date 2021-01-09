@@ -129,6 +129,17 @@ configuration_options = {
         default = "ESC"
     },
     {
+        name = "altKeyToInterrupt",
+        label = "Alternative explicit key to interrupt",
+        options = 
+        {
+            { description = "None",  data = "none" },
+            { description = "ESC",   data = "ESC"  },
+            { description = "Ctrl",  data = "Ctrl" },
+        },
+        default = "Ctrl"
+    },
+    {
         name = "interruptOnMove",
         label = "Interrupt on move",
         options = 

@@ -47,6 +47,7 @@ initActionQueuerPlus = function(playerInst)
     local altKeyToQueueActions = keyMap[GetModConfigData("altKeyToQueueActions")] or nil
     local optKeyToDeselect     = keyMap[GetModConfigData("keyToDeselect")] or nil
     local optKeyToInterrupt    = keyMap[GetModConfigData("keyToInterrupt")] or nil
+    local altKeyToInterrupt    = keyMap[GetModConfigData("altKeyToInterrupt")] or nil
     local autoCollect          = GetModConfigData("autoCollect") == "yes"
     local repeatCraft          = GetModConfigData("repeatCraft") == "yes"
     local interruptOnMove      = GetModConfigData("interruptOnMove") == "yes"
@@ -63,6 +64,13 @@ initActionQueuerPlus = function(playerInst)
         return optKeyToDeselect and TheInput:IsKeyDown(optKeyToDeselect)
     end
 
+    local function isInterruptKeyDown()
+        return (
+            optKeyToInterrupt and TheInput:IsKeyDown(optKeyToInterrupt) or
+            altKeyToInterrupt and TheInput:IsKeyDown(altKeyToInterrupt)
+        )
+    end
+
     if not playerInst.components.actionqueuerplus then
         playerInst:AddComponent("actionqueuerplus")
         playerInst.components.actionqueuerplus:Configure({
@@ -75,7 +83,7 @@ initActionQueuerPlus = function(playerInst)
             playerInst,
             isSelectKeyDown,
             isDeselectKeyDown,
-            optKeyToInterrupt,
+            isInterruptKeyDown,
             interruptOnMove
         )
     else
@@ -91,7 +99,7 @@ updateInputHandler = function(
     playerInst,
     isSelectKeyDown,
     isDeselectKeyDown,
-    optKeyToInterrupt,
+    isInterruptKeyDown,
     interruptOnMove
 )
     logger.logDebug("updateInputHandler")
@@ -110,8 +118,7 @@ updateInputHandler = function(
             local actionqueuerplus = playerInst.components.actionqueuerplus
 
             if (
-                optKeyToInterrupt and
-                TheInput:IsKeyDown(optKeyToInterrupt) and
+                isInterruptKeyDown() and
                 actionqueuerplus:CanInterrupt()
             ) then
                 actionqueuerplus:Interrupt()
