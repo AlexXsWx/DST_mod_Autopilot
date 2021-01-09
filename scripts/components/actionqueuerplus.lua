@@ -53,11 +53,14 @@ local ActionQueuer = Class(function(self, playerInst)
 
     asyncUtils.setImmediate(playerInst, function(playerInst)
         if not (playerInst:IsValid() and playerInst.components.actionqueuerplus) then
+            logger.logError("Unable to enable action queuer component")
             return
         end
 
         if playerInst.HUD and playerInst.HUD.controls then
             ActionQueuer_initializeMouseManagers(self)
+        else
+            logger.logError("Unable to initialize mouse managers")
         end
 
         self:Enable()
