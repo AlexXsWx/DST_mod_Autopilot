@@ -54,6 +54,8 @@ local constants = {
         [ACTIONS.REPAIR_LEAK] = true,
         -- (e.g. heal abigal using glands)
         [ACTIONS.HEAL] = true,
+        -- e.g. seeds
+        [ACTIONS.EAT] = true,
     },
 
     ALLOWED_DEPLOY_MODES = {
