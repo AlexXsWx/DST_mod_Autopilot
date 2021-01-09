@@ -4,7 +4,11 @@ local highlightHelper = require "actionQueuerPlus/highlightHelper"
 local SelectionManager = Class(function(self)
     -- Maps entities to "right button?" (true or false); nil if entity is not selected
     self._rightPerSelectedEntity = {}
+
+    -- Are preview entities for selecting or deselecting?
+    self._previewSelecting = true
     self._previewEntities = {}
+
     self._highlitEntities = {}
 end)
 
@@ -16,9 +20,14 @@ function SelectionManager:IsSelectedWithRight(entity)
     return self._rightPerSelectedEntity[entity] == true
 end
 
-function SelectionManager:shouldKeepHighlight(entity, optPreviewMap)
-    local previewMap = optPreviewMap or self._previewEntities
-    return self:IsEntitySelected(entity) or previewMap[entity] ~= nil
+function SelectionManager:shouldKeepHighlight(entity)
+    if not self._previewSelecting and self._previewEntities[entity] ~= nil then
+        return false
+    end
+    return (
+        self:IsEntitySelected(entity) or
+        self._previewSelecting and self._previewEntities[entity] ~= nil
+    )
 end
 
 function SelectionManager:IsEntitySelected(entity)
@@ -42,20 +51,31 @@ local function SelectionManager_updateHighlight(self, entity)
     end
 end
 
-function SelectionManager:PreviewEntitiesSelection(entities)
+function SelectionManager:PreviewEntitiesSelection(optEntities, optForSelection)
+    if optForSelection ~= nil then
+        self._previewSelecting = optForSelection    
+    else
+        self._previewSelecting = true
+    end
     local oldPreview = self._previewEntities
-    self._previewEntities = entities
+    self._previewEntities = optEntities or {}
     for entity in pairs(oldPreview) do
         SelectionManager_updateHighlight(self, entity)
     end
-    for entity in pairs(entities) do
+    for entity in pairs(self._previewEntities) do
         SelectionManager_updateHighlight(self, entity)
     end
 end
 
-function SelectionManager:SelectEntities(entities, right)
-    for entity in pairs(entities) do
-        self:SelectEntity(entity, right)
+function SelectionManager:SubmitPreview(right)
+    if self._previewSelecting then
+        for entity in pairs(self._previewEntities) do
+            self:SelectEntity(entity, right)
+        end
+    else
+        for entity in pairs(self._previewEntities) do
+            self:DeselectEntity(entity)
+        end
     end
 end
 

@@ -30,8 +30,9 @@ local MouseManager = Class(
         self._isPlayerValid    = isPlayerValid
         self._startThread      = startThread
         self._applyFn          = applyFn
-        -- this one is set later
-        self._isQueuingKeyDown = nil
+        -- these two are set later
+        self._isSelectKeyDown   = nil
+        self._isDeselectKeyDown = nil
         --
 
         self._selectionWidget = nil
@@ -41,8 +42,9 @@ local MouseManager = Class(
     end
 )
 
-function MouseManager:setQueuingKeyDownGetter(isQueuingKeyDown)
-    self._isQueuingKeyDown = isQueuingKeyDown
+function MouseManager:setKeyDownGetters(isSelectKeyDown, isDeselectKeyDown)
+    self._isSelectKeyDown   = isSelectKeyDown
+    self._isDeselectKeyDown = isDeselectKeyDown
 end
 
 --
@@ -105,14 +107,14 @@ end
 
 --
 
-MouseManager_CreateNewSession = function(self, mouseButton, mousePosition)
+MouseManager_CreateNewSession = function(self, mouseButton, mousePosition, selecting)
     local session = {
         mouseButton = mouseButton,
         mousePositionStart = mousePosition,
         mousePositionCurrent = mousePosition,
         selectionBoxProjected = nil,
         updateSelectionBoxThread = nil,
-        actableEntitiesWithinSelectionBox = {},
+        selecting = selecting,
     }
     return session
 end
@@ -120,7 +122,7 @@ end
 MouseManager_ClearSession = function(self)
     if not self._session then return end
 
-    self._selectionManager:PreviewEntitiesSelection({})
+    self._selectionManager:PreviewEntitiesSelection()
 
     if self._session.updateSelectionBoxThread then
         asyncUtils.cancelThread(self._session.updateSelectionBoxThread)
@@ -134,14 +136,20 @@ end
 
 MouseManager_OnDown = function(self, mouseButton)
 
-    local queuingKeyDown = self._isQueuingKeyDown and self._isQueuingKeyDown()
+    local selecting   = self._isSelectKeyDown   and self._isSelectKeyDown()
+    local deselecting = self._isDeselectKeyDown and self._isDeselectKeyDown()
 
     if not self._session then
-        if queuingKeyDown then
+        if (selecting or deselecting) and not (selecting and deselecting) then
             if self._isPlayerValid() then
                 -- TODO: consider using arguments instead of separate API call
                 local mousePosition = mouseAPI.getMousePosition()
-                self._session = MouseManager_CreateNewSession(self, mouseButton, mousePosition)
+                self._session = MouseManager_CreateNewSession(
+                    self,
+                    mouseButton,
+                    mousePosition,
+                    selecting or false
+                )
                 local right = (mouseButton == MOUSEBUTTON_RIGHT)
                 MouseManager_StartSelectionBox(self, right)
             else
@@ -168,10 +176,7 @@ MouseManager_OnUp = function(self, mouseButton)
 
     if self._session.selectionBoxProjected then
         MouseManager_UpdateSelectionBox(self, right)
-        self._selectionManager:SelectEntities(
-            self._session.actableEntitiesWithinSelectionBox,
-            right
-        )
+        self._selectionManager:SubmitPreview(right)
     else
         MouseManager_CherryPick(self, right)
     end
@@ -200,6 +205,13 @@ end
 MouseManager_StartSelectionBox = function(self, right)
     self._session.updateSelectionBoxThread = self._startThread(function()
         while self._isPlayerValid() do
+
+            local selecting   = self._isSelectKeyDown   and self._isSelectKeyDown()
+            local deselecting = self._isDeselectKeyDown and self._isDeselectKeyDown()
+            if (selecting or deselecting) and not (selecting and deselecting) then
+                self._session.selecting = selecting or false
+            end
+
             self._session.mousePositionCurrent = mouseAPI.getMousePosition()
             if (
                 self._session.selectionBoxProjected or
@@ -282,7 +294,7 @@ MouseManager_UpdateSelectionBox = function(self, right)
         constants.UNSELECTABLE_TAGS
     )
 
-    self._session.actableEntitiesWithinSelectionBox = {}
+    local actableEntitiesWithinSelectionBox = {}
 
     for _, entity in ipairs(entitiesAround) do
         if (
@@ -290,12 +302,13 @@ MouseManager_UpdateSelectionBox = function(self, right)
             isBounded(entity:GetPosition()) and
             self._canActUponEntity(entity, right) 
         ) then
-            self._session.actableEntitiesWithinSelectionBox[entity] = true
+            actableEntitiesWithinSelectionBox[entity] = true
         end
     end
 
     self._selectionManager:PreviewEntitiesSelection(
-        self._session.actableEntitiesWithinSelectionBox
+        actableEntitiesWithinSelectionBox,
+        self._session.selecting
     )
 end
 

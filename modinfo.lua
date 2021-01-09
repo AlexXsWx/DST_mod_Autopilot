@@ -31,7 +31,6 @@ description = (
 -- * Button to auto pickup anything around?
 -- * Don't interrupt current action when queing first one with shift+click
 -- * Don't intrerupt action with LMB if user clicks on crafting tab?
--- * Button to deselect area
 -- * Separate selection box actions and pick actions
 -- * UI to change config on the fly
 -- * Fix bug when planting a mushroom to mushroom planter that it gets auto collected
@@ -99,7 +98,24 @@ configuration_options = {
             { description = "V",     data = "V"     },
             { description = "B",     data = "B"     },
         },
-        default = "none"
+        default = "Z"
+    },
+    {
+        name = "keyToDeselect",
+        label = "Key to deselect area",
+        options = 
+        {
+            { description = "None",  data = "none" },
+            { description = "ESC",   data = "ESC"  },
+            { description = "Ctrl",  data = "Ctrl" },
+            { description = "Alt",   data = "Alt"  },
+            { description = "Z",     data = "Z"    },
+            { description = "X",     data = "X"    },
+            { description = "C",     data = "C"    },
+            { description = "V",     data = "V"    },
+            { description = "B",     data = "B"    },
+        },
+        default = "X"
     },
     {
         name = "keyToInterrupt",
