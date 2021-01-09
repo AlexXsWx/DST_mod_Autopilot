@@ -12,7 +12,7 @@ local MouseManager_OnDown
 local MouseManager_OnUp
 local MouseManager_CherryPick
 local MouseManager_StartSelectionBox
-local MouseManager_OnSelectionBoxUpdate
+local MouseManager_UpdateSelectionBox
 -------------------------
 
 local MouseManager = Class(
@@ -110,10 +110,9 @@ MouseManager_CreateNewSession = function(self, mouseButton, mousePosition)
         mouseButton = mouseButton,
         mousePositionStart = mousePosition,
         mousePositionCurrent = mousePosition,
-        posQuad = nil,
-        selectionBoxActive = false,
+        selectionBoxProjected = nil,
         updateSelectionBoxThread = nil,
-        entities = {},
+        actableEntitiesWithinSelectionBox = {},
     }
     return session
 end
@@ -167,15 +166,18 @@ MouseManager_OnUp = function(self, mouseButton)
 
     local right = (mouseButton == MOUSEBUTTON_RIGHT)
 
-    if self._session.selectionBoxActive then
-        MouseManager_OnSelectionBoxUpdate(self, right)
-        self._selectionManager:SelectEntities(self._session.entities, right)
+    if self._session.selectionBoxProjected then
+        MouseManager_UpdateSelectionBox(self, right)
+        self._selectionManager:SelectEntities(
+            self._session.actableEntitiesWithinSelectionBox,
+            right
+        )
     else
         MouseManager_CherryPick(self, right)
     end
 
-    -- posQuad can be nil, that's fine
-    self._applyFn(self._session.posQuad, right)
+    -- selectionBoxProjected can be nil, that's fine
+    self._applyFn(self._session.selectionBoxProjected, right)
 
     self:Clear()
 end
@@ -196,24 +198,18 @@ end
 --
 
 MouseManager_StartSelectionBox = function(self, right)
-    local updateSelectionBox = function()
-        if not self._session.selectionBoxActive then
-            self._session.selectionBoxActive = (
+    self._session.updateSelectionBoxThread = self._startThread(function()
+        while self._isPlayerValid() do
+            self._session.mousePositionCurrent = mouseAPI.getMousePosition()
+            if (
+                self._session.selectionBoxProjected or
                 constants.MANHATTAN_DISTANCE_TO_START_BOX_SELECTION < GeoUtil.ManhattanDistance(
                     self._session.mousePositionStart,
                     self._session.mousePositionCurrent
                 )
-            )
-        end
-        if self._session.selectionBoxActive then
-            MouseManager_OnSelectionBoxUpdate(self, right)
-        end
-    end
-
-    self._session.updateSelectionBoxThread = self._startThread(function()
-        while self._isPlayerValid() do
-            self._session.mousePositionCurrent = mouseAPI.getMousePosition()
-            updateSelectionBox()
+            ) then
+                MouseManager_UpdateSelectionBox(self, right)
+            end
             -- TODO: separate UI feedback and entities finding logic for more fluid user feedback
             Sleep(constants.GET_MOUSE_POS_PERIOD)
         end
@@ -223,9 +219,11 @@ end
 
 --
 
-MouseManager_OnSelectionBoxUpdate = function(self, right)
+MouseManager_UpdateSelectionBox = function(self, right)
 
     local session = self._session
+
+    -- 0:0 = bottom left corner
     local minX = math.min(session.mousePositionStart.x, session.mousePositionCurrent.x)
     local maxX = math.max(session.mousePositionStart.x, session.mousePositionCurrent.x)
     local minY = math.min(session.mousePositionStart.y, session.mousePositionCurrent.y)
@@ -236,7 +234,7 @@ MouseManager_OnSelectionBoxUpdate = function(self, right)
     end
 
     -- TODO: consider keeping 90deg angles
-    session.posQuad = {
+    session.selectionBoxProjected = {
         --     North
         -- -Z  _   _ -X
         --    |\   /|
@@ -245,29 +243,33 @@ MouseManager_OnSelectionBoxUpdate = function(self, right)
         --      / \
         --    |/   \|
         -- +X        +Z
+        --
+        --    B-----C
+        --    |     |
+        --    |     |
+        --    A-----D
+        --
         -- each tile has a side of 4 units
         -- geometric placement makes 8x8 points per tile
-        minXminYProjected = GeoUtil.MapScreenPt(minX, minY),
-        maxXminYProjected = GeoUtil.MapScreenPt(maxX, minY),
-        minXmaxYProjected = GeoUtil.MapScreenPt(minX, maxY), 
-        maxXmaxYProjected = GeoUtil.MapScreenPt(maxX, maxY)
+        --
+        A = GeoUtil.MapScreenPt(minX, minY),
+        B = GeoUtil.MapScreenPt(minX, maxY), 
+        C = GeoUtil.MapScreenPt(maxX, maxY),
+        D = GeoUtil.MapScreenPt(maxX, minY)
     }
 
-    local isBounded = GeoUtil.CreateQuadrilateralTester(
-        session.posQuad.minXminYProjected,
-        session.posQuad.maxXminYProjected,
-        session.posQuad.maxXmaxYProjected, -- warning: order is different here
-        session.posQuad.minXmaxYProjected
-    )
+    local quad = session.selectionBoxProjected
+
+    local isBounded = GeoUtil.CreateQuadrilateralTester(quad.A, quad.B, quad.C, quad.D)
 
     local selectionBoxCenter = GeoUtil.MapScreenPt((minX + maxX) / 2, (minY + maxY) / 2)
 
     local selectionBoxOuterRadius = math.sqrt(
         math.max(
-            selectionBoxCenter:DistSq(session.posQuad.minXminYProjected),
-            selectionBoxCenter:DistSq(session.posQuad.maxXminYProjected),
-            selectionBoxCenter:DistSq(session.posQuad.minXmaxYProjected),
-            selectionBoxCenter:DistSq(session.posQuad.maxXmaxYProjected)
+            selectionBoxCenter:DistSq(quad.A),
+            selectionBoxCenter:DistSq(quad.B),
+            selectionBoxCenter:DistSq(quad.C),
+            selectionBoxCenter:DistSq(quad.D)
         )
     )
 
@@ -280,7 +282,7 @@ MouseManager_OnSelectionBoxUpdate = function(self, right)
         constants.UNSELECTABLE_TAGS
     )
 
-    local actableEntitiesWithinBox = {}
+    self._session.actableEntitiesWithinSelectionBox = {}
 
     for _, entity in ipairs(entitiesAround) do
         if (
@@ -288,12 +290,13 @@ MouseManager_OnSelectionBoxUpdate = function(self, right)
             isBounded(entity:GetPosition()) and
             self._canActUponEntity(entity, right) 
         ) then
-            actableEntitiesWithinBox[entity] = true
+            self._session.actableEntitiesWithinSelectionBox[entity] = true
         end
     end
 
-    self._session.entities = actableEntitiesWithinBox
-    self._selectionManager:PreviewEntitiesSelection(self._session.entities)
+    self._selectionManager:PreviewEntitiesSelection(
+        self._session.actableEntitiesWithinSelectionBox
+    )
 end
 
 --

@@ -168,25 +168,22 @@ function GeoUtil.createPositionIterator(quad)
     -- |  /  .
     -- | /   .
     -- A . .(D)
-    local A = quad.minXminYProjected
-    local B = quad.minXmaxYProjected
-    local C = quad.maxXmaxYProjected
 
     if (
-        not A or not B or not C or
+        not quad.A or not quad.B or not quad.C or
         -- TODO: what's this for? is it complete? shouldn't it check coords instead of objects?
-        A == B or B == C or
-        not quad.maxXminYProjected
+        quad.A == quad.B or quad.B == quad.C or
+        not quad.D
     ) then
         return nil
     end
 
-    local O       = Vector3(B:Get())
-    local limitBC = Vector3(C:Get())
-    local limitBA = A
+    local O       = Vector3(quad.B:Get())
+    local limitBC = Vector3(quad.C:Get())
+    local limitBA = quad.A
 
-    local paramsBA = getLineParams(B, A)
-    local paramsBC = getLineParams(B, C)
+    local paramsBA = getLineParams(quad.B, quad.A)
+    local paramsBC = getLineParams(quad.B, quad.C)
     paramsBA.orientation = tryGetPerpendicular(paramsBC.orientation)
     paramsBC.orientation = tryGetPerpendicular(paramsBA.orientation)
 
