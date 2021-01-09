@@ -25,7 +25,6 @@ description = (
 -- * Smarter/faster bulk pick-up?
 -- * Fix gate door infinite loop?
 -- * Option to disable carrots pick-up?
--- * While action queuer is active, don't auto submit new selection box until it's confirmed
 -- * Repeat walk in direction
 -- * Repeat walk along edge?
 -- * Align player position to tile? (walk to) / increment steps? (to support dropping items at exact location)
