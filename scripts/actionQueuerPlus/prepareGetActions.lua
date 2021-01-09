@@ -22,6 +22,7 @@ local special_cases = {
         return not (
             right or
             -- TODO: also when autocollecting
+            -- TODO: move to utils.shouldIgnorePickupTarget?
             optConfig and optConfig.dontPickFlowers and (
                 target:HasTag("flower") or
                 target:HasTag("succulent") or
