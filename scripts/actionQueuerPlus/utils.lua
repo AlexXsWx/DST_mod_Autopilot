@@ -11,10 +11,10 @@ end
 
 --
 
-function utils.override(obj, method)
+function utils.override(obj, method, fn)
     local originalFn = obj[method]
     obj[method] = function(self, ...)
-        return originalFn(self, originalFn, ...)
+        return fn(self, originalFn, ...)
     end
 end
 

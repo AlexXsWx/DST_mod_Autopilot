@@ -1,3 +1,4 @@
+local utils           = require "actionQueuerPlus/utils"
 local highlightHelper = require "actionQueuerPlus/highlightHelper"
 
 local SelectionManager = Class(function(self)
@@ -45,15 +46,15 @@ function SelectionManager:PreviewEntitiesSelection(entities)
     local oldPreview = self._previewEntities
     self._previewEntities = entities
     for entity in pairs(oldPreview) do
-        SelectionManager_updateHighlight(entity)
+        SelectionManager_updateHighlight(self, entity)
     end
     for entity in pairs(entities) do
-        SelectionManager_updateHighlight(entity)
+        SelectionManager_updateHighlight(self, entity)
     end
 end
 
 function SelectionManager:SelectEntities(entities, right)
-    for entity in pairs(entites) do
+    for entity in pairs(entities) do
         self:SelectEntity(entity, right)
     end
 end
@@ -66,14 +67,14 @@ function SelectionManager:SelectEntity(entity, right)
 
     if self._rightPerSelectedEntity[entity] == nil then
         self._rightPerSelectedEntity[entity] = right or false
-        SelectionManager_updateHighlight(entity)
+        SelectionManager_updateHighlight(self, entity)
     end
 end
 
 function SelectionManager:DeselectEntity(entity)
     if self._rightPerSelectedEntity[entity] ~= nil then
         self._rightPerSelectedEntity[entity] = nil
-        SelectionManager_updateHighlight(entity)
+        SelectionManager_updateHighlight(self, entity)
     end
 end
 

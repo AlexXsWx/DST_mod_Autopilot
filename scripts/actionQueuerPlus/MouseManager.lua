@@ -120,7 +120,7 @@ MouseManager_CreateNewSession = function(self, mouseButton, mousePosition)
 end
 
 MouseManager_ClearSession = function(self)
-    if self._session then return end
+    if not self._session then return end
 
     self._selectionManager:PreviewEntitiesSelection({})
 

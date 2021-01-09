@@ -70,7 +70,9 @@ function ActionQueuer:Configure(config)
         self._playerInst,
         { dontPickFlowers = config.dontPickFlowers }
     )
-    ActionQueuer_reconfigureMouseManager(self)
+    if self._mouseManager then
+        ActionQueuer_reconfigureMouseManager(self)
+    end
 end
 
 --
@@ -155,7 +157,7 @@ ActionQueuer_initializeMouseManagers = function(self)
         canActUponEntity,
         isPlayerValid,
         self._startThread,
-        apply,
+        apply
     )
     ActionQueuer_reconfigureMouseManager(self)
 end
