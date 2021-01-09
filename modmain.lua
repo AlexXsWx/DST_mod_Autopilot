@@ -49,7 +49,6 @@ initActionQueuerPlus = function(playerInst)
     local optKeyToInterrupt    = keyMap[GetModConfigData("keyToInterrupt")] or nil
     local altKeyToInterrupt    = keyMap[GetModConfigData("altKeyToInterrupt")] or nil
     local autoCollect          = GetModConfigData("autoCollect") == "yes"
-    local repeatCraft          = GetModConfigData("repeatCraft") == "yes"
     local interruptOnMove      = GetModConfigData("interruptOnMove") == "yes"
     local dontPickFlowers      = GetModConfigData("pickFlowers") ~= "yes"
 
@@ -90,9 +89,7 @@ initActionQueuerPlus = function(playerInst)
         logger.logWarning("actionqueuerplus component already exists")
     end
 
-    if repeatCraft then
-        enableAutoRepeatCraft(playerInst, isSelectKeyDown)
-    end
+    enableAutoRepeatCraft(playerInst, isSelectKeyDown)
 end
 
 updateInputHandler = function(

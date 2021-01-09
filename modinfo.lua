@@ -60,16 +60,6 @@ configuration_options = {
         default = "no"
     },
     {
-        name = "repeatCraft",
-        label = "Auto repeat craft",
-        options = 
-        {
-            { description = "no",  data = "no"  },
-            { description = "yes", data = "yes" },
-        },
-        default = "yes"
-    },
-    {
         name = "keyToQueueActions",
         label = "Key to queue actions",
         options = 
