@@ -10,7 +10,7 @@ local SelectionManager  = require "actionQueuerPlus/SelectionManager"
 
 -- forward declaration
 local ActionQueuer_initializeMouseManagers
-local ActionQueuer_reconfigureManagers
+local ActionQueuer_reconfigureMouseManager
 local ActionQueuer_waitAction
 local ActionQueuer_autoCollect
 local ActionQueuer_applyToDeploy
@@ -34,9 +34,7 @@ local ActionQueuer = Class(function(self, playerInst)
 
     self._selectionManager = SelectionManager()
 
-    -- former "enabled"
-    self._mouseManagersAttached = false
-    self._mouseManagers = {}
+    self._mouseManager = nil
 
     -- TODO: change to ever increasing number?
     self._interrupted = true
@@ -72,7 +70,7 @@ function ActionQueuer:Configure(config)
         self._playerInst,
         { dontPickFlowers = config.dontPickFlowers }
     )
-    ActionQueuer_reconfigureManagers(self)
+    ActionQueuer_reconfigureMouseManager(self)
 end
 
 --
@@ -94,10 +92,7 @@ function ActionQueuer:Interrupt()
 
     self._interrupted = true
 
-    for _, mouseManager in pairs(self._mouseManagers) do
-        mouseManager:Clear()
-    end
-
+    self._mouseManager:Clear()
     self._selectionManager:DeselectAllEntities()
 
     if self._activeThread then
@@ -109,25 +104,12 @@ end
 --
 
 function ActionQueuer:Enable()
-    if self._mouseManagersAttached then return end
-
-    for mouseButton, mouseManager in pairs(self._mouseManagers) do
-        mouseManager:Attach(self._playerInst.HUD.controls, mouseButton)
-    end
-
-    self._mouseManagersAttached = true
+    self._mouseManager:Attach(self._playerInst.HUD.controls)
 end
 
 function ActionQueuer:Disable()
     self:Interrupt()
-
-    if not self._mouseManagersAttached then return end
-
-    for _, mouseManager in pairs(self._mouseManagers) do
-        mouseManager:Detach()
-    end
-
-    self._mouseManagersAttached = false
+    self._mouseManager:Detach()
 end
 
 --
@@ -144,64 +126,42 @@ end
 
 ActionQueuer_initializeMouseManagers = function(self)
 
-    mouseAPI.initializeHandlerAdders()
-
-    local isAnyMouseManagerSelecting = function()
-        for _, mouseManager in pairs(self._mouseManagers) do
-            if mouseManager:IsSelecting() then
-                return true
-            end
-        end
-        return false
-    end
+    mouseAPI.initializeHandlerAddrs()
 
     local isPlayerValid = function()
         return self._playerInst:IsValid()
     end
 
-    -- TODO: 1 manager is enough
-    local mouseButtons = { MOUSEBUTTON_LEFT, MOUSEBUTTON_RIGHT }
-
-    for _, mouseButton in pairs(mouseButtons) do
-
-        local right = (mouseButton == MOUSEBUTTON_RIGHT)
-
-        local canActUponEntity = function(entity)
-            local actions = self._getActions(entity, right)
-            return utils.toboolean(actions[1])
-        end
-
-        local function apply(optQuad)
-            if (
-                -- TODO: check why originally it was checking for not cherry picking
-                optQuad and
-                right and
-                utils.canDeployItem(self._playerInst.replica.inventory:GetActiveItem())
-            ) then
-                ActionQueuer_applyToDeploy(self, optQuad)
-            else
-                ActionQueuer_applyToSelection(self)
-            end
-        end
-
-        local mouseManager = MouseManager(
-            self._selectionManager,
-            isAnyMouseManagerSelecting,
-            canActUponEntity,
-            isPlayerValid,
-            self._startThread,
-            apply,
-        )
-        self._mouseManagers[mouseButton] = mouseManager
+    local canActUponEntity = function(entity, right)
+        local actions = self._getActions(entity, right)
+        return utils.toboolean(actions[1])
     end
 
-    ActionQueuer_reconfigureManagers(self)
+    local apply = function(optQuad, right)
+        if (
+            -- TODO: check why originally it was checking for not cherry picking
+            optQuad and
+            right and
+            utils.canDeployItem(self._playerInst.replica.inventory:GetActiveItem())
+        ) then
+            ActionQueuer_applyToDeploy(self, optQuad)
+        else
+            ActionQueuer_applyToSelection(self)
+        end
+    end
+
+    self._mouseManager = MouseManager(
+        self._selectionManager,
+        canActUponEntity,
+        isPlayerValid,
+        self._startThread,
+        apply,
+    )
+    ActionQueuer_reconfigureMouseManager(self)
 end
 
-ActionQueuer_reconfigureManagers = function(self)
-    for _, mouseManager in pairs(self._mouseManagers) do
-        mouseManager:setIsQueiengActive(self._config.isQueiengActive)
-    end
+ActionQueuer_reconfigureMouseManager = function(self)
+    self._mouseManager:setIsQueiengActive(self._config.isQueiengActive)
 end
 
 --

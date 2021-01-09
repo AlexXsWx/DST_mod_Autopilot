@@ -1,67 +1,72 @@
 require "events"
 
+local logger = require "actionQueuerPlus/logger"
+local utils  = require "actionQueuerPlus/utils"
+
 local mouseAPI = {}
 
 --
 
-local mousedown = EventProcessor()
-local mouseup   = EventProcessor()
-local mousemove = EventProcessor()
+local EVENT_BUTTON_STATE_CHANGE = "buttonStateChange"
+local EVENT_MOUSE_MOVE          = "move"
+
+local mouseEvents = EventProcessor()
 
 --
 
-local initialized_handlers = false
+local handlerAddrsInitialized = false
 
-function mouseAPI.initializeHandlerAdders()
+function mouseAPI.initializeHandlerAddrs()
 
-    if initialized_handlers then return end
+    if handlerAddrsInitialized then return end
+    handlerAddrsInitialized = true
 
     local TheFrontEnd = rawget(_G, "TheFrontEnd")
-    if not TheFrontEnd then return end
+    if not TheFrontEnd then
+        logger.logError("Unable to initialize mouseAPI")
+        return
+    end
 
-    -- Override TheFrontEnd.OnMouseButton
-
-    local originalOnMouseButton = TheFrontEnd.OnMouseButton
-
-    local function newOnMouseButton(self, button, down, x, y)
-        if not originalOnMouseButton(self, button, down, x, y) then
-            local eventProcessor = down and mousedown or mouseup
-            eventProcessor:HandleEvent(button, x, y)
-        else
-            return true
+    utils.override(
+        TheFrontEnd,
+        "OnMouseButton",
+        function(self, originalFn, button, down, x, y)
+            if not originalFn(self, button, down, x, y) then
+                mouseEvents:HandleEvent(
+                    EVENT_BUTTON_STATE_CHANGE,
+                    button, down, x, y
+                )
+            else
+                return true
+            end
         end
-    end
+    )
 
-    TheFrontEnd.OnMouseButton = newOnMouseButton
-
-    -- Override TheFrontEnd.OnMouseMove
-
-    local originalOnMouseMove = TheFrontEnd.OnMouseMove
-
-    local function newOnMouseMove(self, x, y)
-        mousemove:HandleEvent("move", x, y)
-        return originalOnMouseMove(self, x, y)
-    end
-
-    TheFrontEnd.OnMouseMove = newOnMouseMove
-
-    --
-
-    initialized_handlers = true
+    utils.override(
+        TheFrontEnd,
+        "OnMouseMove",
+        function(self, originalFn, x, y)
+            mouseEvents:HandleEvent(EVENT_MOUSE_MOVE, x, y)
+            return originalFn(self, x, y)
+        end
+    )
 end
 
-function mouseAPI.addMouseButtonHandler(button, down, fn)
-    local eventProcessor = down and mousedown or mouseup
-    eventProcessor:AddEventHandler(button, fn)
+--
+
+function mouseAPI.addButtonStateChangeHandler(handlerFn)
+    return mouseEvents:AddEventHandler(EVENT_BUTTON_STATE_CHANGE, handlerFn)
 end
 
-function mouseAPI.addMouseMoveHandler(fn)
-    mousemove:AddEventHandler("move", fn)
+function mouseAPI.addMouseMoveHandler(handlerFn)
+    mouseEvents:AddEventHandler(EVENT_MOUSE_MOVE, handlerFn)
 end
 
 -- In pixels, 0:0 = bottom left corner
 function mouseAPI.getMousePosition()
     return TheInput:GetScreenPosition()
 end
+
+--
 
 return mouseAPI

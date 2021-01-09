@@ -11,6 +11,13 @@ end
 
 --
 
+function utils.override(obj, method)
+    local originalFn = obj[method]
+    obj[method] = function(self, ...)
+        return originalFn(self, originalFn, ...)
+    end
+end
+
 function utils.overrideToCancelIf(obj, method, shouldCancelFn)
     local originalFn = obj[method]
     obj[method] = function(self, ...)

@@ -13,7 +13,6 @@ local MouseManager = Class(
     function(
         self,
         selectionManager,
-        isAnyMouseManagerSelecting,
         canActUponEntity,
         isPlayerValid,
         startThread,
@@ -21,21 +20,23 @@ local MouseManager = Class(
     )
         -- save dependencies
 
-        self._selectionManager           = selectionManager
-        self._isAnyMouseManagerSelecting = isAnyMouseManagerSelecting
-        self._canActUponEntity           = canActUponEntity
-        self._isPlayerValid              = isPlayerValid
-        self._startThread                = startThread
-        self._applyFn                    = applyFn
+        self._selectionManager = selectionManager
+        self._canActUponEntity = canActUponEntity
+        self._isPlayerValid    = isPlayerValid
+        self._startThread      = startThread
+        self._applyFn          = applyFn
 
         --
+
+        self._attached = false
+
+        self._currentButton = nil
 
         self._isQueiengActive = nil
 
         self._mouseHandlers = nil
 
         self._handleMouseMoveThread = nil
-        self._handleMouseMove = nil
 
         self._posQuad = nil
         self._selectionBoxActive = false
@@ -51,11 +52,11 @@ function MouseManager:setIsQueiengActive(isQueiengActive)
     self._isQueiengActive = isQueiengActive
 end
 
-function MouseManager:IsSelecting()
-    return self._handleMouseMoveThread ~= nil
-end
+function MouseManager:Clear(optSoft)
 
-function MouseManager:Clear()
+    if not optSoft then
+        self._currentButton = nil
+    end
 
     self._posQuad = nil
     self._selectionBoxActive = false
@@ -70,47 +71,53 @@ function MouseManager:Clear()
         self._mouseHandlers.move:Remove()
         self._mouseHandlers.move = nil
     end
-    self._handleMouseMove = nil
 
     if self._selectionWidget then
         self._selectionWidget:Hide()
     end
 end
 
-function MouseManager:Attach(widgetParent, mouseButton)
+function MouseManager:Attach(widgetParent)
 
-    if self._mouseHandlers then
+    if self._attached then
         return
     end
-
-    self._right = (mouseButton == MOUSEBUTTON_RIGHT)
+    self._attached = true
 
     self._selectionWidget = SelectionWidget(widgetParent)
 
     self._mouseHandlers = {
-        down = mouseAPI.addMouseButtonHandler(
-            mouseButton,
-            true,
-            function() return MouseManager_OnDown(self) end
-        ),
-        up = mouseAPI.addMouseButtonHandler(
-            mouseButton,
-            false,
-            function() return MouseManager_OnUp(self) end
+        buttonStateChange = mouseAPI.addButtonStateChangeHandler(
+            function(mouseButton, down)
+                if (
+                    mouseButton == MOUSEBUTTON_LEFT or
+                    mouseButton == MOUSEBUTTON_RIGHT
+                ) then
+                    if down then
+                        MouseManager_OnDown(self, mouseButton)
+                    else
+                        MouseManager_OnUp(self, mouseButton)
+                    end
+                end
+            end
         ),
         move = nil
     }
 end
 
 function MouseManager:Detach()
+
+    if not self._attached then
+        return
+    end
+    self._attached = false
+
     self:Clear()
 
-    if self._mouseHandlers then
-        for _, handler in pairs(self._mouseHandlers) do
-            handler:Remove()
-        end
-        self._mouseHandlers = nil
+    for _, handler in pairs(self._mouseHandlers) do
+        handler:Remove()
     end
+    self._mouseHandlers = nil
 
     if self._selectionWidget then
         self._selectionWidget:Kill()
@@ -120,12 +127,12 @@ end
 
 --
 
-local function MouseManager_OnDown_CherryPick(self)
+local function MouseManager_OnDown_CherryPick(self, right)
     local entities = TheInput:GetAllEntitiesUnderMouse()
 
     for _, entity in ipairs(entities) do
-        if utils.testEntity(entity) and self._canActUponEntity(entity) then
-            self._selectionManager:ToggleEntitySelection(entity, self._right)
+        if utils.testEntity(entity) and self._canActUponEntity(entity, right) then
+            self._selectionManager:ToggleEntitySelection(entity, right)
             return
         end
     end
@@ -133,7 +140,7 @@ end
 
 --
 
-local function MouseManager_DispachSelectedEntitiesChanges(self, selectedActableEntities)
+local function MouseManager_DispachSelectedEntitiesChanges(self, selectedActableEntities, right)
     for entity in pairs(self._previousEntities) do
         if not selectedActableEntities[entity] then
             self._selectionManager:DeselectEntity(entity)
@@ -142,14 +149,14 @@ local function MouseManager_DispachSelectedEntitiesChanges(self, selectedActable
 
     for entity in pairs(selectedActableEntities) do
         if not self._previousEntities[entity] then
-            self._selectionManager:SelectEntity(entity, self._right)
+            self._selectionManager:SelectEntity(entity, right)
         end
     end
 
     self._previousEntities = selectedActableEntities
 end
 
-local function MouseManager_HandleNewSelectionBox(self)
+local function MouseManager_HandleNewSelectionBox(self, right)
 
     local minX = math.min(self._mousePositionStart.x, self._mousePositionCurrent.x)
     local maxX = math.max(self._mousePositionStart.x, self._mousePositionCurrent.x)
@@ -211,24 +218,24 @@ local function MouseManager_HandleNewSelectionBox(self)
         if (
             utils.testEntity(entity) and
             isBounded(entity:GetPosition()) and
-            self._canActUponEntity(entity) 
+            self._canActUponEntity(entity, right) 
         ) then
             actableEntitiesWithinBox[entity] = true
         end
     end
 
-    MouseManager_DispachSelectedEntitiesChanges(self, actableEntitiesWithinBox)
+    MouseManager_DispachSelectedEntitiesChanges(self, actableEntitiesWithinBox, right)
 end
 
 --
 
-local function MouseManager_OnDown_SelectionBox(self)
+local function MouseManager_OnDown_SelectionBox(self, right)
 
     self._selectionBoxActive = false
 
     self._mousePositionStart = mouseAPI.getMousePosition()
 
-    self._handleMouseMove = function()
+    local handleMouseMove = function()
         if not self._selectionBoxActive then
             self._selectionBoxActive = (
                 GeoUtil.ManhattanDistance(self._mousePositionStart, self._mousePositionCurrent) >
@@ -236,7 +243,7 @@ local function MouseManager_OnDown_SelectionBox(self)
             )
         end
         if self._selectionBoxActive then
-            MouseManager_HandleNewSelectionBox(self)
+            MouseManager_HandleNewSelectionBox(self, right)
         end
     end
 
@@ -250,7 +257,7 @@ local function MouseManager_OnDown_SelectionBox(self)
             if mouseMoved then
                 mouseMoved = false
                 self._mousePositionCurrent = mouseAPI.getMousePosition()
-                self._handleMouseMove()
+                handleMouseMove()
             end
             Sleep(constants.GET_MOUSE_POS_PERIOD)
         end
@@ -260,24 +267,41 @@ end
 
 --
 
-MouseManager_OnDown = function(self)
-    self:Clear()
+MouseManager_OnDown = function(self, mouseButton)
 
-    if not self._isPlayerValid() or self._isAnyMouseManagerSelecting() then return end
+    if self._currentButton ~= nil then
+        return
+    end
+    self._currentButton = mouseButton
 
-    if self._isQueiengActive and self._isQueiengActive() then
-        MouseManager_OnDown_CherryPick(self)
-        MouseManager_OnDown_SelectionBox(self)
+    self:Clear(true)
+
+    if (
+        self._isPlayerValid() and
+        self._handleMouseMoveThread == nil and
+        self._isQueiengActive and
+        self._isQueiengActive()
+    ) then
+        local right = (mouseButton == MOUSEBUTTON_RIGHT)
+        MouseManager_OnDown_CherryPick(self, right)
+        MouseManager_OnDown_SelectionBox(self, right)
     end
 end
 
-MouseManager_OnUp = function(self)
+MouseManager_OnUp = function(self, mouseButton)
+
+    if self.self._currentButton ~= nil and self._currentButton ~= mouseButton then
+        return
+    end
+
+    local right = (mouseButton == MOUSEBUTTON_RIGHT)
+
     if self._selectionBoxActive then
         self._mousePositionCurrent = mouseAPI.getMousePosition()
-        MouseManager_HandleNewSelectionBox(self)
+        MouseManager_HandleNewSelectionBox(self, right)
     end
     -- _posQuad can be nil, that's fine
-    self._applyFn(self._posQuad)
+    self._applyFn(self._posQuad, right)
     self:Clear()
 end
 
