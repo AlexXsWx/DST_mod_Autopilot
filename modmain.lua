@@ -50,7 +50,9 @@ initActionQueuerPlus = function(playerInst)
     local altKeyToInterrupt    = keyMap[GetModConfigData("altKeyToInterrupt")] or nil
     local autoCollect          = GetModConfigData("autoCollect") == "yes"
     local interruptOnMove      = GetModConfigData("interruptOnMove") == "yes"
-    local dontPickFlowers      = GetModConfigData("pickFlowers") ~= "yes"
+    local pickFlowersMode      = GetModConfigData("pickFlowers")
+    local pickCarrotsMode      = GetModConfigData("pickCarrots")
+    local pickMandrakesMode    = GetModConfigData("pickMandrakes")
 
     local function isSelectKeyDown()
         return (
@@ -76,7 +78,9 @@ initActionQueuerPlus = function(playerInst)
             autoCollect       = autoCollect,
             isSelectKeyDown   = isSelectKeyDown,
             isDeselectKeyDown = isDeselectKeyDown,
-            dontPickFlowers   = dontPickFlowers,
+            pickFlowersMode   = pickFlowersMode,
+            pickCarrotsMode   = pickCarrotsMode,
+            pickMandrakesMode = pickMandrakesMode,
         })
         updateInputHandler(
             playerInst,

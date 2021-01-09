@@ -305,7 +305,7 @@ MouseManager_UpdateSelectionBox = function(self, right)
         if (
             utils.testEntity(entity) and
             isBounded(entity:GetPosition()) and
-            self._canActUponEntity(entity, right, false)
+            self._canActUponEntity(entity, right, not session.selecting)
         ) then
             actableEntitiesWithinSelectionBox[entity] = true
         end
@@ -313,7 +313,7 @@ MouseManager_UpdateSelectionBox = function(self, right)
 
     self._selectionManager:PreviewEntitiesSelection(
         actableEntitiesWithinSelectionBox,
-        self._session.selecting
+        session.selecting
     )
 end
 

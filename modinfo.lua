@@ -23,7 +23,6 @@ description = (
 -- * World-aligned coords?
 -- * Reduced cooldown on chopping burnt trees / digging up tree trunks
 -- * Smarter/faster bulk pick-up?
--- * Option to disable carrots/mandrakes pick-up?
 -- * Repeat walk in direction
 -- * Repeat walk along edge?
 -- * Align player position to tile? (walk to) / increment steps? (to support dropping items at exact location)
@@ -142,8 +141,31 @@ configuration_options = {
         label = "Pick flowers",
         options = 
         {
-            { description = "no",  data = "no"  },
-            { description = "yes", data = "yes" },
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "no"
+    },
+    {
+        name = "pickCarrots",
+        label = "Pick carrots",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "yes"
+    },
+    {
+        name = "pickMandrakes",
+        label = "Pick mandrakes",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
         },
         default = "no"
     },

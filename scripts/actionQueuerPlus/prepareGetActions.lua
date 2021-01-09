@@ -4,6 +4,12 @@ local utils     = require "actionQueuerPlus/utils"
 local function isLeft(target, right)  return not right end
 local function isRight(target, right) return right     end
 
+local function testCherryPick(mode, cherrypickingOrDeselecting)
+    if mode == "no" then return true end
+    if mode == "cherryPickOnly" then return not cherrypickingOrDeselecting end
+    return false
+end
+
 local special_cases = {
 
     [ACTIONS.HAMMER]     = isRight,
@@ -18,15 +24,23 @@ local special_cases = {
     [ACTIONS.DRY]        = isLeft,
     [ACTIONS.PLANT]      = isLeft,
 
-    [ACTIONS.PICK] = function(target, right, cherrypicking, optConfig)
+    [ACTIONS.PICK] = function(target, right, cherrypickingOrDeselecting, optConfig)
         return not (
             right or
             -- TODO: also when autocollecting
             -- TODO: move to utils.shouldIgnorePickupTarget?
-            optConfig and optConfig.dontPickFlowers and (
-                target:HasTag("flower") or
-                target:HasTag("succulent") or
-                target.prefab == "cave_fern"
+            optConfig and (
+                testCherryPick(optConfig.pickFlowersMode, cherrypickingOrDeselecting) and (
+                    target:HasTag("flower") or
+                    target:HasTag("succulent") or
+                    target.prefab == "cave_fern"
+                ) or
+                testCherryPick(optConfig.pickCarrotsMode, cherrypickingOrDeselecting) and (
+                    target.prefab == "carrot_planted"
+                ) or
+                testCherryPick(optConfig.pickMandrakesMode, cherrypickingOrDeselecting) and (
+                    target.prefab == "mandrake_planted"
+                )
             )
         )
     end,
@@ -43,15 +57,17 @@ local special_cases = {
         return not (right or utils.shouldIgnorePickupTarget(target))
     end,
 
-    [ACTIONS.EAT] = function(target, right, cherrypicking, optConfig)
-        return cherrypicking
+    [ACTIONS.EAT] = function(target, right, cherrypickingOrDeselecting, optConfig)
+        return cherrypickingOrDeselecting
     end,
 }
 
 ----------------------------------------------------------------
 
 -- WARNING: this also mutates the given actions by setting `isRight` property
-local function filterActions(actions, target, right, cherrypicking, optConfig)
+local function filterActions(
+    actions, target, right, cherrypickingOrDeselecting, optConfig
+)
     local nactions = {}
     for i, v in ipairs(actions) do
         if (
@@ -59,7 +75,9 @@ local function filterActions(actions, target, right, cherrypicking, optConfig)
             constants.ALLOWED_ACTIONS[v.action] and
             (
                 special_cases[v.action] == nil or
-                special_cases[v.action](target, right, cherrypicking, optConfig)
+                special_cases[v.action](
+                    target, right, cherrypickingOrDeselecting, optConfig
+                )
             )
         ) then
             -- Mutation
@@ -71,7 +89,7 @@ local function filterActions(actions, target, right, cherrypicking, optConfig)
 end
 
 local function prepareGetActions(playerInst, optConfig)
-    local function getActions(target, right, cherrpicking)
+    local function getActions(target, right, cherrypickingOrDeselecting)
         local actions = nil
 
         local useitem   = playerInst.replica.inventory:GetActiveItem()
@@ -97,7 +115,9 @@ local function prepareGetActions(playerInst, optConfig)
         end
         actions = actions or {}
 
-        return filterActions(actions, target, right, cherrpicking, optConfig)
+        return filterActions(
+            actions, target, right, cherrypickingOrDeselecting, optConfig
+        )
     end
     return getActions
 end

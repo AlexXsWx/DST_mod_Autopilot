@@ -69,7 +69,11 @@ function ActionQueuer:Configure(config)
     self._config = config
     self._getActions = prepareGetActions(
         self._playerInst,
-        { dontPickFlowers = config.dontPickFlowers }
+        {
+            pickFlowersMode   = config.pickFlowersMode,
+            pickCarrotsMode   = config.pickCarrotsMode,
+            pickMandrakesMode = config.pickMandrakesMode,
+        }
     )
     if self._mouseManager then
         ActionQueuer_reconfigureMouseManager(self)
@@ -135,8 +139,8 @@ ActionQueuer_initializeMouseManagers = function(self)
         return self._playerInst:IsValid()
     end
 
-    local canActUponEntity = function(entity, right, cherrypicking)
-        local actions = self._getActions(entity, right, cherrypicking)
+    local canActUponEntity = function(entity, right, cherrypickingOrDeselecting)
+        local actions = self._getActions(entity, right, cherrypickingOrDeselecting)
         return utils.toboolean(actions[1])
     end
 
