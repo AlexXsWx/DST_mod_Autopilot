@@ -1,10 +1,11 @@
 require "events"
 
-local constants  = require "actionQueuerPlus/constants"
-local utils      = require "actionQueuerPlus/utils"
-local asyncUtils = require "actionQueuerPlus/asyncUtils"
-local GeoUtil    = require "actionQueuerPlus/GeoUtil"
-local mouseAPI   = require "actionQueuerPlus/mouseAPI"
+local constants       = require "actionQueuerPlus/constants"
+local utils           = require "actionQueuerPlus/utils"
+local asyncUtils      = require "actionQueuerPlus/asyncUtils"
+local GeoUtil         = require "actionQueuerPlus/GeoUtil"
+local mouseAPI        = require "actionQueuerPlus/mouseAPI"
+local SelectionWidget = require "actionQueuerPlus/SelectionWidget"
 
 -- forward declaration
 local MouseManager_OnDown
@@ -40,6 +41,8 @@ local MouseManager = Class(
         self._mousePositionStart = nil
         self._mousePositionCurrent = nil
 
+        self._selectionWidget = nil
+
         -- public
 
         self.actionQueuerEvents = EventProcessor()
@@ -64,20 +67,25 @@ function MouseManager:Clear()
     if self._handleMouseMoveThread then
         asyncUtils.cancelThread(self._handleMouseMoveThread)
         self._handleMouseMoveThread = nil
-        self.actionQueuerEvents:HandleEvent("ClearSelectionRectangle")
     end
     if self._mouseHandlers and self._mouseHandlers.move then
         self._mouseHandlers.move:Remove()
         self._mouseHandlers.move = nil
     end
     self._handleMouseMove = nil
+
+    if self._selectionWidget then
+        self._selectionWidget:Hide()
+    end
 end
 
-function MouseManager:Attach(mouseButton)
+function MouseManager:Attach(widgetParent, mouseButton)
 
     if self._mouseHandlers then
         return
     end
+
+    self._selectionWidget = SelectionWidget(widgetParent)
 
     self._mouseHandlers = {
         down = mouseAPI.addMouseButtonHandler(
@@ -102,6 +110,11 @@ function MouseManager:Detach()
             handler:Remove()
         end
         self._mouseHandlers = nil
+    end
+
+    if self._selectionWidget then
+        self._selectionWidget:Kill()
+        self._selectionWidget = nil
     end
 end
 
@@ -143,7 +156,9 @@ local function MouseManager_HandleNewSelectionBox(self)
     local minY = math.min(self._mousePositionStart.y, self._mousePositionCurrent.y)
     local maxY = math.max(self._mousePositionStart.y, self._mousePositionCurrent.y)
     
-    self.actionQueuerEvents:HandleEvent("SetSelectionRectangle", minX, minY, maxX, maxY)
+    if self._selectionWidget then
+        self._selectionWidget:Show(minX, minY, maxX, maxY)
+    end
 
     -- TODO: consider keeping 90deg angles
     self._posQuad = {

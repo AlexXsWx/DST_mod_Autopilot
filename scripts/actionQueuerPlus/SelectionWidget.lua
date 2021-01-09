@@ -2,17 +2,12 @@ local Image = require "widgets/image"
 
 local constants = require "actionQueuerPlus/constants"
 
-local SelectionWidget = Class(function(self)
-    self._image = nil
-end)
-
-function SelectionWidget:Create(parent)
-    self:Kill()
+local SelectionWidget = Class(function(self, parent)
     self._image = Image("images/selection_square.xml", "selection_square.tex")
     self._image:SetTint(unpack(constants.SELECTION_BOX_TINT))
     parent:AddChild(self._image)
     self:Hide()
-end
+end)
 
 function SelectionWidget:Show(xMin, yMin, xMax, yMax)
     if self._image then

@@ -7,7 +7,6 @@ local prepareGetActions = require "actionQueuerPlus/prepareGetActions"
 local mouseAPI          = require "actionQueuerPlus/mouseAPI"
 local MouseManager      = require "actionQueuerPlus/MouseManager"
 local SelectionManager  = require "actionQueuerPlus/SelectionManager"
-local SelectionWidget   = require "actionQueuerPlus/SelectionWidget"
 
 -- forward declaration
 local ActionQueuer_initializeMouseManagers
@@ -34,8 +33,6 @@ local ActionQueuer = Class(function(self, playerInst)
         isQueiengActive = nil,
     }
 
-
-    self._selectionWidget = SelectionWidget()
     self._selectionManager = SelectionManager()
 
     -- former "enabled"
@@ -60,7 +57,6 @@ local ActionQueuer = Class(function(self, playerInst)
         end
 
         if playerInst.HUD and playerInst.HUD.controls then
-            self._selectionWidget:Create(playerInst.HUD.controls)
             ActionQueuer_initializeMouseManagers(self)
         end
 
@@ -102,8 +98,6 @@ function ActionQueuer:Interrupt()
         mouseManager:Clear()
     end
 
-    self._selectionWidget:Hide()
-
     if self._activeThread then
         asyncUtils.cancelThread(self._activeThread)
         self._activeThread = nil
@@ -116,7 +110,7 @@ function ActionQueuer:Enable()
     if self._mouseManagersAttached then return end
 
     for mouseButton, mouseManager in pairs(self._mouseManagers) do
-        mouseManager:Attach(mouseButton)
+        mouseManager:Attach(self._playerInst.HUD.controls, mouseButton)
     end
 
     self._mouseManagersAttached = true
@@ -138,12 +132,10 @@ end
 
 function ActionQueuer:OnRemoveFromEntity()
     self:Disable()
-    self._selectionWidget:Kill()
 end
 
 function ActionQueuer:OnRemoveEntity()
     self:Disable()
-    self._selectionWidget:Kill()
 end
 
 -- Mouse managers
@@ -192,17 +184,6 @@ ActionQueuer_initializeMouseManagers = function(self)
 end
 
 ActionQueuer_hookMouseManagerEvents = function(self, events, right)
-
-    -- Selection widget
-
-    events:AddEventHandler(
-        "SetSelectionRectangle",
-        function(xMin, yMin, xMax, yMax) self._selectionWidget:Show(xMin, yMin, xMax, yMax) end
-    )
-    events:AddEventHandler(
-        "ClearSelectionRectangle",
-        function() self._selectionWidget:Hide() end
-    )
 
     -- Selection manager
 
