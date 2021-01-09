@@ -24,6 +24,7 @@ description = (
 -- * Reduced cooldown on chopping burnt trees / digging up tree trunks
 -- * Smarter/faster bulk pick-up?
 -- * Fix gate door infinite loop?
+-- * Option to disable carrots pick-up?
 -- * While action queuer is active, don't auto submit new selection box until it's confirmed
 -- * Repeat walk in direction
 -- * Repeat walk along edge?
@@ -33,6 +34,7 @@ description = (
 -- * Don't intrerupt action with LMB if user clicks on crafting tab?
 -- * Button to deselect area
 -- * Separate selection box actions and pick actions
+-- * UI to change config on the fly
 
 api_version = 6 -- not sure about this one since DS is not supported
 api_version_dst = 10
