@@ -50,7 +50,7 @@ local ActionQueuer = Class(function(self, playerInst)
     -- cache
 
     self._getActions = prepareGetActions(playerInst)
-    self._startThread = asyncUtils.getStartThread(self._playerInst)
+    self._startThread = asyncUtils.getStartThread(playerInst)
 
     --
 
@@ -70,6 +70,10 @@ end)
 
 function ActionQueuer:Configure(config)
     self._config = config
+    self._getActions = prepareGetActions(
+        self._playerInst,
+        { dontPickFlowers = config.dontPickFlowers }
+    )
     ActionQueuer_reconfigureManagers(self)
 end
 

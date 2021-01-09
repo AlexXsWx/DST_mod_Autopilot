@@ -49,6 +49,7 @@ initActionQueuerPlus = function(playerInst)
     local autoCollect          = GetModConfigData("autoCollect") == "yes"
     local repeatCraft          = GetModConfigData("repeatCraft") == "yes"
     local interruptOnMove      = GetModConfigData("interruptOnMove") == "yes"
+    local dontPickFlowers      = GetModConfigData("pickFlowers") ~= "yes"
 
     local function isQueiengActive()
         return (
@@ -62,6 +63,7 @@ initActionQueuerPlus = function(playerInst)
         playerInst.components.actionqueuerplus:Configure({
             autoCollect     = autoCollect,
             isQueiengActive = isQueiengActive,
+            dontPickFlowers = dontPickFlowers,
         })
         updateInputHandler(playerInst, isQueiengActive, optKeyToInterrupt, interruptOnMove)
     else

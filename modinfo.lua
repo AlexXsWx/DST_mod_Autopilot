@@ -24,7 +24,6 @@ description = (
 -- * Reduced cooldown on chopping burnt trees / digging up tree trunks
 -- * Smarter/faster bulk pick-up?
 -- * Fix gate door infinite loop?
--- * Option to disable flowers pick-up?
 -- * While action queuer is active, don't auto submit new selection box until it's confirmed
 -- * Repeat walk in direction
 -- * Repeat walk along edge?
@@ -114,6 +113,16 @@ configuration_options = {
     {
         name = "interruptOnMove",
         label = "Interrupt on move",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "yes"
+    },
+    {
+        name = "pickFlowers",
+        label = "Pick flowers",
         options = 
         {
             { description = "no",  data = "no"  },

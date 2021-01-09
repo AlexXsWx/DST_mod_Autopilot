@@ -15,9 +15,20 @@ local special_cases = {
     [ACTIONS.FERTILIZE]  = isLeft,
     [ACTIONS.MINE]       = isLeft,
     [ACTIONS.CHOP]       = isLeft,
-    [ACTIONS.PICK]       = isLeft,
     [ACTIONS.DRY]        = isLeft,
     [ACTIONS.PLANT]      = isLeft,
+
+    [ACTIONS.PICK] = function(target, right, optConfig)
+        return not (
+            right or
+            -- TODO: also when autocollecting
+            optConfig and optConfig.dontPickFlowers and (
+                target:HasTag("flower") or
+                target:HasTag("succulent") or
+                target.prefab == "cave_fern"
+            )
+        )
+    end,
 
     [ACTIONS.SHAVE] = function(target, right)
         return not (right or target:HasTag("player"))
@@ -35,7 +46,7 @@ local special_cases = {
 ----------------------------------------------------------------
 
 -- WARNING: this also mutates the given actions by setting `isRight` property
-local function filterActions(actions, target, right)
+local function filterActions(actions, target, right, optConfig)
     local nactions = {}
     for i, v in ipairs(actions) do
         if (
@@ -43,7 +54,7 @@ local function filterActions(actions, target, right)
             constants.ALLOWED_ACTIONS[v.action] and
             (
                 not special_cases[v.action] or
-                (special_cases[v.action] and special_cases[v.action](target, right))
+                (special_cases[v.action] and special_cases[v.action](target, right, optConfig))
             )
         ) then
             -- Mutation
@@ -54,7 +65,7 @@ local function filterActions(actions, target, right)
     return nactions
 end
 
-local function prepareGetActions(playerInst)
+local function prepareGetActions(playerInst, optConfig)
     local function getActions(target, right)
         local actions = nil
 
@@ -80,7 +91,8 @@ local function prepareGetActions(playerInst)
             end
         end
         actions = actions or {}
-        return filterActions(actions, target, right)
+
+        return filterActions(actions, target, right, optConfig)
     end
     return getActions
 end
