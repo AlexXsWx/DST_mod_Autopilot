@@ -51,7 +51,7 @@ initActionQueuerPlus = function(playerInst)
     local interruptOnMove      = GetModConfigData("interruptOnMove") == "yes"
     local dontPickFlowers      = GetModConfigData("pickFlowers") ~= "yes"
 
-    local function isQueiengActive()
+    local function isQueuingKeyDown()
         return (
             TheInput:IsKeyDown(keyToQueueActions) or
             altKeyToQueueActions and TheInput:IsKeyDown(altKeyToQueueActions)
@@ -61,21 +61,21 @@ initActionQueuerPlus = function(playerInst)
     if not playerInst.components.actionqueuerplus then
         playerInst:AddComponent("actionqueuerplus")
         playerInst.components.actionqueuerplus:Configure({
-            autoCollect     = autoCollect,
-            isQueiengActive = isQueiengActive,
-            dontPickFlowers = dontPickFlowers,
+            autoCollect      = autoCollect,
+            isQueuingKeyDown = isQueuingKeyDown,
+            dontPickFlowers  = dontPickFlowers,
         })
-        updateInputHandler(playerInst, isQueiengActive, optKeyToInterrupt, interruptOnMove)
+        updateInputHandler(playerInst, isQueuingKeyDown, optKeyToInterrupt, interruptOnMove)
     else
         logger.logWarning("actionqueuerplus component already exists")
     end
 
     if repeatCraft then
-        enableAutoRepeatCraft(playerInst, isQueiengActive)
+        enableAutoRepeatCraft(playerInst, isQueuingKeyDown)
     end
 end
 
-updateInputHandler = function(playerInst, isQueiengActive, optKeyToInterrupt, interruptOnMove)
+updateInputHandler = function(playerInst, isQueuingKeyDown, optKeyToInterrupt, interruptOnMove)
     logger.logDebug("updateInputHandler")
     utils.overrideToCancelIf(
         playerInst.components.playercontroller,
@@ -85,7 +85,7 @@ updateInputHandler = function(playerInst, isQueiengActive, optKeyToInterrupt, in
                 return false
             end
 
-            if isQueiengActive() then
+            if isQueuingKeyDown() then
                 return true
             end
 
@@ -119,13 +119,13 @@ updateInputHandler = function(playerInst, isQueiengActive, optKeyToInterrupt, in
     )
 end
 
-enableAutoRepeatCraft = function(playerInst, isQueiengActive)
+enableAutoRepeatCraft = function(playerInst, isQueuingKeyDown)
     logger.logDebug("enableAutoRepeatCraft")
     utils.overrideToCancelIf(
         playerInst.replica.builder,
         "MakeRecipeFromMenu",
         function(self, recipe, skin)
-            if isQueiengActive() and recipe.placer == nil then
+            if isQueuingKeyDown() and recipe.placer == nil then
                 playerInst.components.actionqueuerplus:RepeatRecipe(recipe, skin)
                 return true
             end

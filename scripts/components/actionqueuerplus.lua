@@ -29,7 +29,7 @@ local ActionQueuer = Class(function(self, playerInst)
 
     self._config = {
         autoCollect = false,
-        isQueiengActive = nil,
+        isQueuingKeyDown = nil,
     }
 
     self._selectionManager = SelectionManager()
@@ -161,7 +161,7 @@ ActionQueuer_initializeMouseManagers = function(self)
 end
 
 ActionQueuer_reconfigureMouseManager = function(self)
-    self._mouseManager:setIsQueiengActive(self._config.isQueiengActive)
+    self._mouseManager:setQueuingKeyDownGetter(self._config.isQueuingKeyDown)
 end
 
 --

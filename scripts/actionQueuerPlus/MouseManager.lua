@@ -32,7 +32,7 @@ local MouseManager = Class(
 
         self._currentButton = nil
 
-        self._isQueiengActive = nil
+        self._isQueuingKeyDown = nil
 
         self._mouseHandlers = nil
 
@@ -48,8 +48,8 @@ local MouseManager = Class(
     end
 )
 
-function MouseManager:setIsQueiengActive(isQueiengActive)
-    self._isQueiengActive = isQueiengActive
+function MouseManager:setQueuingKeyDownGetter(isQueuingKeyDown)
+    self._isQueuingKeyDown = isQueuingKeyDown
 end
 
 function MouseManager:Clear(optSoft)
@@ -279,8 +279,8 @@ MouseManager_OnDown = function(self, mouseButton)
     if (
         self._isPlayerValid() and
         self._handleMouseMoveThread == nil and
-        self._isQueiengActive and
-        self._isQueiengActive()
+        self._isQueuingKeyDown and
+        self._isQueuingKeyDown()
     ) then
         local right = (mouseButton == MOUSEBUTTON_RIGHT)
         MouseManager_OnDown_CherryPick(self, right)
