@@ -24,7 +24,7 @@ description = (
 -- * Reduced cooldown on chopping burnt trees / digging up tree trunks
 -- * Smarter/faster bulk pick-up?
 -- * Fix gate door infinite loop?
--- * Option to disable carrots pick-up?
+-- * Option to disable carrots/mandrakes pick-up?
 -- * Repeat walk in direction
 -- * Repeat walk along edge?
 -- * Align player position to tile? (walk to) / increment steps? (to support dropping items at exact location)
@@ -34,6 +34,7 @@ description = (
 -- * Button to deselect area
 -- * Separate selection box actions and pick actions
 -- * UI to change config on the fly
+-- * Fix bug when planting a mushroom to mushroom planter that it gets auto collected
 
 api_version = 6 -- not sure about this one since DS is not supported
 api_version_dst = 10
