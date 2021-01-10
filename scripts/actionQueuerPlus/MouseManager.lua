@@ -7,6 +7,7 @@ local SelectionWidget = require "actionQueuerPlus/SelectionWidget"
 
 -- forward declaration --
 local MouseManager_CreateNewSession
+local MouseManager_UpdateSession
 local MouseManager_ClearSession
 local MouseManager_OnDown
 local MouseManager_OnUp
@@ -119,6 +120,17 @@ MouseManager_CreateNewSession = function(self, mouseButton, mousePosition, selec
     return session
 end
 
+MouseManager_UpdateSession = function(self)
+    local selecting   = self._isSelectKeyDown   and self._isSelectKeyDown()
+    local deselecting = self._isDeselectKeyDown and self._isDeselectKeyDown()
+    if (selecting or deselecting) and not (selecting and deselecting) then
+        self._session.selecting = selecting or false
+    end
+
+    -- TODO: consider using arguments instead of separate API call
+    self._session.mousePositionCurrent = mouseAPI.getMousePosition()
+end
+
 MouseManager_ClearSession = function(self)
     if not self._session then return end
 
@@ -169,8 +181,7 @@ MouseManager_OnUp = function(self, mouseButton)
         return
     end
 
-    -- TODO: consider using arguments instead of separate API call
-    self._session.mousePositionCurrent = mouseAPI.getMousePosition()
+    MouseManager_UpdateSession(self)    
 
     local right = (mouseButton == MOUSEBUTTON_RIGHT)
 
@@ -199,8 +210,13 @@ MouseManager_CherryPick = function(self, right)
 
     for _, entity in ipairs(entities) do
         if utils.testEntity(entity) and self._canActUponEntity(entity, right, true) then
-            self._selectionManager:ToggleEntitySelection(entity, right)
-            return
+            if self._session.selecting then
+                self._selectionManager:ToggleEntitySelection(entity, right)
+                return
+            elseif self._selectionManager:IsEntitySelected(entity) then
+                self._selectionManager:DeselectEntity(entity)
+                return
+            end
         end
     end
 end
@@ -210,14 +226,7 @@ end
 MouseManager_StartSelectionBox = function(self, right)
     self._session.updateSelectionBoxThread = self._startThread(function()
         while self._isPlayerValid() do
-
-            local selecting   = self._isSelectKeyDown   and self._isSelectKeyDown()
-            local deselecting = self._isDeselectKeyDown and self._isDeselectKeyDown()
-            if (selecting or deselecting) and not (selecting and deselecting) then
-                self._session.selecting = selecting or false
-            end
-
-            self._session.mousePositionCurrent = mouseAPI.getMousePosition()
+            MouseManager_UpdateSession(self)
             if (
                 self._session.selectionBoxProjected or
                 constants.MANHATTAN_DISTANCE_TO_START_BOX_SELECTION < GeoUtil.ManhattanDistance(
