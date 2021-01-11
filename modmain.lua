@@ -4,7 +4,7 @@ local utils            = require "actionQueuerPlus/utils"
 local asyncUtils       = require "actionQueuerPlus/asyncUtils"
 local highlightHelper  = require "actionQueuerPlus/highlightHelper"
 
-local ActionQueuerPlusOptionsScreen = require("screens/actionqueuerplusoptionsscreen")
+local OptionsScreen = require("screens/actionqueuerplusoptionsscreen")
 
 Assets = {
     Asset("ATLAS", "images/selection_square.xml"),
@@ -164,7 +164,7 @@ updateInputHandler = function(playerInst, config)
         function()
             if not optionsScreenOpen then
                 optionsScreenOpen = true
-                local screen = ActionQueuerPlusOptionsScreen(modname, scrollViewOffset, onUpdate)
+                local screen = OptionsScreen(modname, scrollViewOffset, onUpdate)
                 GLOBAL.TheFrontEnd:PushScreen(screen)
             end
         end

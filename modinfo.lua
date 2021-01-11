@@ -30,7 +30,6 @@ description = (
 -- * Don't interrupt current action when queing first one with shift+click
 -- * Don't intrerupt action with LMB if user clicks on crafting tab?
 -- * Separate selection box actions and pick actions
--- * UI to change config on the fly
 
 api_version = 6 -- not sure about this one since DS is not supported
 api_version_dst = 10
