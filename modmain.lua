@@ -120,13 +120,27 @@ initActionQueuerPlus = function(playerInst)
     enableAutoRepeatCraft(playerInst, config)
 end
 
+--
+
+-- We want to make sure that chatting, or being in menus, etc, doesn't toggle
+local function getActiveScreenName()
+    local screen = GLOBAL.TheFrontEnd:GetActiveScreen()
+    return screen and screen.name or ""
+end
+
+local function isDefaultScreen()
+    return getActiveScreenName():find("HUD") ~= nil
+end
+
+--
+
 updateInputHandler = function(playerInst, config)
     logger.logDebug("updateInputHandler")
     utils.overrideToCancelIf(
         playerInst.components.playercontroller,
         "OnControl",
         function(self, ...)
-            if playerInst.HUD:IsMapScreenOpen() then
+            if not isDefaultScreen() then
                 return false
             end
 
@@ -164,10 +178,8 @@ updateInputHandler = function(playerInst, config)
         end
     )
 
-    local optionsScreenOpen = false
     local scrollViewOffset = 0
     local onUpdate = function(newScrollViewOffset, optHadEffect)
-        optionsScreenOpen = false
         scrollViewOffset = newScrollViewOffset
         if optHadEffect then
             updateConfig()
@@ -178,8 +190,7 @@ updateInputHandler = function(playerInst, config)
         -- FIXME: allow to configure
         GLOBAL.KEY_X,
         function()
-            if not optionsScreenOpen then
-                optionsScreenOpen = true
+            if isDefaultScreen() then
                 local screen = OptionsScreen(modname, scrollViewOffset, onUpdate)
                 GLOBAL.TheFrontEnd:PushScreen(screen)
             end
