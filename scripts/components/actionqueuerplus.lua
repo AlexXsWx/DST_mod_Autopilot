@@ -107,7 +107,9 @@ function ActionQueuer:Interrupt()
 
     self._interrupted = true
 
-    self._mouseManager:Clear()
+    if self._mouseManager then
+        self._mouseManager:Clear()
+    end
     self._selectionManager:DeselectAllEntities()
 
     if self._activeThread then
