@@ -28,7 +28,6 @@ description = (
 -- * Align player position to tile? (walk to) / increment steps? (to support dropping items at exact location)
 -- * Button to auto pickup anything around?
 -- * Don't interrupt current action when queing first one with shift+click
--- * Don't intrerupt action with LMB if user clicks on crafting tab?
 -- * Separate selection box actions and pick actions
 
 api_version = 6 -- not sure about this one since DS is not supported

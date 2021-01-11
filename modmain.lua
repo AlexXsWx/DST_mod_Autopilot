@@ -151,8 +151,10 @@ updateInputHandler = function(playerInst, config)
                     TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_LEFT) or
                     TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_RIGHT)
                 ) or
-                TheInput:IsControlPressed(GLOBAL.CONTROL_PRIMARY) or
-                TheInput:IsControlPressed(GLOBAL.CONTROL_SECONDARY) or
+                not TheInput:GetHUDEntityUnderMouse() and (
+                    TheInput:IsControlPressed(GLOBAL.CONTROL_PRIMARY) or
+                    TheInput:IsControlPressed(GLOBAL.CONTROL_SECONDARY)
+                ) or
                 TheInput:IsControlPressed(GLOBAL.CONTROL_ATTACK)
             )
             then
