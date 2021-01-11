@@ -242,6 +242,16 @@ configuration_options = {
         },
         default = "cherryPickOnly"
     },
+    {
+        name = "werebeaverDig",
+        label = "Dig stumps as werebeaver",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "yes"
+    },
 }
 
 local icon_stem = "modicon"

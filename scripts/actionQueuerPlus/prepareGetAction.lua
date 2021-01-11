@@ -24,6 +24,15 @@ local special_cases = {
     [ACTIONS.DRY]        = isLeft,
     [ACTIONS.PLANT]      = isLeft,
 
+    [ACTIONS.DIG] = function(target, right, cherrypickingOrDeselecting, optConfig, playerInst)
+        return not (
+            optConfig and
+            not optConfig.werebeaverDig and
+            target:HasTag("stump") and
+            playerInst:HasTag("beaver")
+        )
+    end,
+
     [ACTIONS.PICK] = function(target, right, cherrypickingOrDeselecting, optConfig)
         return not (
             right or
@@ -98,19 +107,6 @@ local special_cases = {
 
 ----------------------------------------------------------------
 
-local function isActionAllowed(
-    action, target, right, cherrypickingOrDeselecting, optConfig
-)
-    return (
-        constants.ALLOWED_ACTIONS[action] and (
-            special_cases[action] == nil or
-            special_cases[action](
-                target, right, cherrypickingOrDeselecting, optConfig
-            )
-        )
-    )
-end
-
 local function prepareGetAction(playerInst, optConfig)
     local function getAction(target, right, cherrypickingOrDeselecting)
 
@@ -125,7 +121,14 @@ local function prepareGetAction(playerInst, optConfig)
         end
 
         for _, act in ipairs(potentialActions) do
-            if isActionAllowed(act.action, target, right, cherrypickingOrDeselecting, optConfig) then
+            if (
+                constants.ALLOWED_ACTIONS[act.action] and (
+                    special_cases[act.action] == nil or
+                    special_cases[act.action](
+                        target, right, cherrypickingOrDeselecting, optConfig, playerInst
+                    )
+                )
+            ) then
                 -- Mutation
                 act.isRight = right
                 return act

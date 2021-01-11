@@ -80,6 +80,7 @@ function ActionQueuer:Configure(config)
             pickRocksMode       = config.pickRocksMode,
             pickFlintMode       = config.pickFlintMode,
             pickTreeBlossomMode = config.pickTreeBlossomMode,
+            werebeaverDig       = config.werebeaverDig,
         }
     )
     if self._mouseManager then

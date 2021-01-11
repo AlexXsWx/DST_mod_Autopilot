@@ -79,6 +79,7 @@ local function updateConfig()
     config.pickRocksMode       = GetModConfigData("pickRocks")
     config.pickFlintMode       = GetModConfigData("pickFlint")
     config.pickTreeBlossomMode = GetModConfigData("pickTreeBlossom")
+    config.werebeaverDig       = GetModConfigData("werebeaverDig") == "yes"
     config.isSelectKeyDown     = isSelectKeyDown
     config.isDeselectKeyDown   = isDeselectKeyDown
     config.isInterruptKeyDown  = isInterruptKeyDown
@@ -99,6 +100,7 @@ local function reconfigureComponent(actionqueuerplus)
         pickRocksMode       = config.pickRocksMode,
         pickFlintMode       = config.pickFlintMode,
         pickTreeBlossomMode = config.pickTreeBlossomMode,
+        werebeaverDig       = config.werebeaverDig,
     })
 end
 
