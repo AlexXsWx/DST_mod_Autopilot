@@ -7,7 +7,7 @@ local Widget         = require "widgets/widget"
 local TEMPLATES      = require "widgets/templates"
 local ScrollableList = require "widgets/scrollablelist"
 
-local ActionQueuerPlusOptionsScreen = Class(Screen, function(self, modname, callback)
+local ActionQueuerPlusOptionsScreen = Class(Screen, function(self, modname, scrollViewOffset, callback)
     Screen._ctor(self, "ActionQueuerPlusOptionsScreen")
 
     self._callback = callback
@@ -186,6 +186,8 @@ local ActionQueuerPlusOptionsScreen = Class(Screen, function(self, modname, call
         self.options_scroll_list:SetPosition(-20, 0)
     end
 
+    self.options_scroll_list:Scroll(scrollViewOffset, true)
+
 end)
 
 function ActionQueuerPlusOptionsScreen:CollectSettings()
@@ -198,9 +200,8 @@ function ActionQueuerPlusOptionsScreen:CollectSettings()
 end
 
 function ActionQueuerPlusOptionsScreen:Apply()
-    -- self:Close()
     if not self:IsDirty() then
-        TheFrontEnd:PopScreen()    
+        self:Close()
         return    
     end
 
@@ -208,8 +209,7 @@ function ActionQueuerPlusOptionsScreen:Apply()
     KnownModIndex:SaveConfigurationOptions(
         function() 
             self:MakeDirty(false)
-            TheFrontEnd:PopScreen()
-            self._callback()
+            self:Close(true)
         end,
         self.modname,
         settings,
@@ -218,7 +218,20 @@ function ActionQueuerPlusOptionsScreen:Apply()
 end
 
 function ActionQueuerPlusOptionsScreen:Cancel()
-    TheFrontEnd:PopScreen()
+    self:Close()
+end
+
+function ActionQueuerPlusOptionsScreen:OnControl(control, down)
+    if ActionQueuerPlusOptionsScreen._base.OnControl(self, control, down) then return true end
+    
+    if not down and (
+        control == CONTROL_PAUSE or
+        control == CONTROL_CANCEL or
+        control == CONTROL_MENU_MISC_3
+    ) then
+        self:Close()
+        return true
+    end
 end
 
 -- function ActionQueuerPlusOptionsScreen:OnRawKey(key, down)
@@ -232,13 +245,13 @@ end
 --     end
 -- end
 
--- function ActionQueuerPlusOptionsScreen:Close()
---     TheFrontEnd:PopScreen() 
---     -- SetPause(false)
---     -- GetWorld():PushEvent("continuefrompause")
---     -- TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
--- end
-
+function ActionQueuerPlusOptionsScreen:Close(optHadEffect)
+    self._callback(self.options_scroll_list.view_offset, optHadEffect or false)
+    TheFrontEnd:PopScreen() 
+    -- SetPause(false)
+    -- GetWorld():PushEvent("continuefrompause")
+    -- TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
+end
 
 function ActionQueuerPlusOptionsScreen:MakeDirty(dirty)
     if dirty ~= nil then

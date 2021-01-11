@@ -148,16 +148,25 @@ updateInputHandler = function(playerInst, config)
         end
     )
 
+    local optionsScreenOpen = false
+    local scrollViewOffset = 0
+    local onUpdate = function(newScrollViewOffset, optHadEffect)
+        optionsScreenOpen = false
+        scrollViewOffset = newScrollViewOffset
+        if optHadEffect then
+            updateConfig()
+            reconfigureComponent(playerInst.components.actionqueuerplus)            
+        end
+    end
     TheInput:AddKeyDownHandler(
         -- FIXME: allow to configure
         GLOBAL.KEY_X,
         function()
-            local onUpdate = function()
-                updateConfig()
-                reconfigureComponent(playerInst.components.actionqueuerplus)            
+            if not optionsScreenOpen then
+                optionsScreenOpen = true
+                local screen = ActionQueuerPlusOptionsScreen(modname, scrollViewOffset, onUpdate)
+                GLOBAL.TheFrontEnd:PushScreen(screen)
             end
-            local screen = ActionQueuerPlusOptionsScreen(modname, onUpdate)
-            GLOBAL.TheFrontEnd:PushScreen(screen)
         end
     )
 end
