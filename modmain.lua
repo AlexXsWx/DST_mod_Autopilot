@@ -67,22 +67,36 @@ local function updateConfig()
         )
     end
 
-    config.autoCollect         = GetModConfigData("autoCollect") == "yes"
-    config.interruptOnMove     = GetModConfigData("interruptOnMove") == "yes"
-    config.pickFlowersMode     = GetModConfigData("pickFlowers")
-    config.pickCarrotsMode     = GetModConfigData("pickCarrots")
-    config.pickMandrakesMode   = GetModConfigData("pickMandrakes")
-    config.pickMushroomsMode   = GetModConfigData("pickMushrooms")
-    config.pickTwigsMode       = GetModConfigData("pickTwigs")
-    config.pickRotMode         = GetModConfigData("pickRot")
-    config.pickSeedsMode       = GetModConfigData("pickSeeds")
-    config.pickRocksMode       = GetModConfigData("pickRocks")
-    config.pickFlintMode       = GetModConfigData("pickFlint")
-    config.pickTreeBlossomMode = GetModConfigData("pickTreeBlossom")
-    config.werebeaverDig       = GetModConfigData("werebeaverDig") == "yes"
     config.isSelectKeyDown     = isSelectKeyDown
     config.isDeselectKeyDown   = isDeselectKeyDown
     config.isInterruptKeyDown  = isInterruptKeyDown
+
+    config.autoCollect         = GetModConfigData("autoCollect") == "yes"
+    config.interruptOnMove     = GetModConfigData("interruptOnMove") == "yes"
+
+    --
+
+    local settingsForFilters = {}
+
+    settingsForFilters.digStumpsAsWerebeaver = GetModConfigData("digStumpsAsWerebeaver") == "yes"
+
+    local pickModes = {
+        "pickFlowersMode",
+        "pickCarrotsMode",
+        "pickMandrakesMode",
+        "pickMushroomsMode",
+        "pickTwigsMode",
+        "pickRotMode",
+        "pickSeedsMode",
+        "pickRocksMode",
+        "pickFlintMode",
+        "pickTreeBlossomMode",
+    }
+    for _, pickMode in pairs(pickModes) do
+        settingsForFilters[pickMode] = GetModConfigData(pickMode)
+    end
+
+    config.settingsForFilters = settingsForFilters
 end
 
 local function reconfigureComponent(actionqueuerplus)
@@ -90,17 +104,7 @@ local function reconfigureComponent(actionqueuerplus)
         autoCollect         = config.autoCollect,
         isSelectKeyDown     = config.isSelectKeyDown,
         isDeselectKeyDown   = config.isDeselectKeyDown,
-        pickFlowersMode     = config.pickFlowersMode,
-        pickCarrotsMode     = config.pickCarrotsMode,
-        pickMandrakesMode   = config.pickMandrakesMode,
-        pickMushroomsMode   = config.pickMushroomsMode,
-        pickTwigsMode       = config.pickTwigsMode,
-        pickRotMode         = config.pickRotMode,
-        pickSeedsMode       = config.pickSeedsMode,
-        pickRocksMode       = config.pickRocksMode,
-        pickFlintMode       = config.pickFlintMode,
-        pickTreeBlossomMode = config.pickTreeBlossomMode,
-        werebeaverDig       = config.werebeaverDig,
+        settingsForFilters  = config.settingsForFilters,
     })
 end
 

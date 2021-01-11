@@ -209,7 +209,10 @@ MouseManager_CherryPick = function(self, right)
     local entities = TheInput:GetAllEntitiesUnderMouse()
 
     for _, entity in ipairs(entities) do
-        if utils.testEntity(entity) and self._canActUponEntity(entity, right, true) then
+        if (
+            utils.testEntity(entity) and
+            self._canActUponEntity(entity, right, true, not self._session.selecting)
+        ) then
             if self._session.selecting then
                 self._selectionManager:ToggleEntitySelection(entity, right)
                 return
@@ -314,7 +317,7 @@ MouseManager_UpdateSelectionBox = function(self, right)
         if (
             utils.testEntity(entity) and
             isBounded(entity:GetPosition()) and
-            self._canActUponEntity(entity, right, not session.selecting)
+            self._canActUponEntity(entity, right, false, not session.selecting)
         ) then
             actableEntitiesWithinSelectionBox[entity] = true
         end

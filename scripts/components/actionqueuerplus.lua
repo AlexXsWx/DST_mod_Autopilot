@@ -3,18 +3,19 @@ local utils            = require "actionQueuerPlus/utils"
 local asyncUtils       = require "actionQueuerPlus/asyncUtils"
 local logger           = require "actionQueuerPlus/logger"
 local GeoUtil          = require "actionQueuerPlus/GeoUtil"
-local prepareGetAction = require "actionQueuerPlus/prepareGetAction"
+local getAction        = require "actionQueuerPlus/getAction"
 local mouseAPI         = require "actionQueuerPlus/mouseAPI"
 local MouseManager     = require "actionQueuerPlus/MouseManager"
 local SelectionManager = require "actionQueuerPlus/SelectionManager"
 
--- forward declaration
+-- forward declaration --
 local ActionQueuer_initializeMouseManagers
 local ActionQueuer_reconfigureMouseManager
 local ActionQueuer_waitAction
 local ActionQueuer_autoCollect
 local ActionQueuer_applyToDeploy
 local ActionQueuer_applyToSelection
+-------------------------
 
 local ActionQueuer = Class(function(self, playerInst)
 
@@ -42,9 +43,6 @@ local ActionQueuer = Class(function(self, playerInst)
 
     self._activeThread = nil
 
-    -- cache
-
-    self._getAction = prepareGetAction(playerInst)
     self._startThread = asyncUtils.getStartThread(playerInst)
 
     --
@@ -67,22 +65,6 @@ end)
 
 function ActionQueuer:Configure(config)
     self._config = config
-    self._getAction = prepareGetAction(
-        self._playerInst,
-        {
-            pickFlowersMode     = config.pickFlowersMode,
-            pickCarrotsMode     = config.pickCarrotsMode,
-            pickMandrakesMode   = config.pickMandrakesMode,
-            pickMushroomsMode   = config.pickMushroomsMode,
-            pickTwigsMode       = config.pickTwigsMode,
-            pickRotMode         = config.pickRotMode,
-            pickSeedsMode       = config.pickSeedsMode,
-            pickRocksMode       = config.pickRocksMode,
-            pickFlintMode       = config.pickFlintMode,
-            pickTreeBlossomMode = config.pickTreeBlossomMode,
-            werebeaverDig       = config.werebeaverDig,
-        }
-    )
     if self._mouseManager then
         ActionQueuer_reconfigureMouseManager(self)
     end
@@ -149,9 +131,18 @@ ActionQueuer_initializeMouseManagers = function(self)
         return self._playerInst:IsValid()
     end
 
-    local canActUponEntity = function(entity, right, cherrypickingOrDeselecting)
+    local canActUponEntity = function(entity, right, cherrypicking, deselecting)
         return utils.toboolean(
-            self._getAction(entity, right, cherrypickingOrDeselecting)
+            getAction(
+                {
+                    playerInst = self._playerInst,
+                    target = entity,
+                    right = right,
+                    cherrypicking = cherrypicking,
+                    deselecting = deselecting,
+                },
+                self._config.settingsForFilters,
+            )
         )
     end
 
@@ -336,10 +327,15 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
 
             if not target then break end
 
-            local action = self._getAction(
-                target,
-                self._selectionManager:IsSelectedWithRight(target),
-                cherrypicking
+            local action = getAction(
+                {
+                    playerInst = playerInst,
+                    target = target,
+                    right = self._selectionManager:IsSelectedWithRight(target),
+                    cherrypicking = cherrypicking,
+                    deselecting = false,
+                },
+                self._config.settingsForFilters,
             )
             local targetPosition = target:GetPosition()
 

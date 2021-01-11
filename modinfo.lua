@@ -133,7 +133,7 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "pickFlowers",
+        name = "pickFlowersMode",
         label = "Pick flowers", -- also evil flowers, cave fern and succulent
         options = 
         {
@@ -144,7 +144,7 @@ configuration_options = {
         default = "no"
     },
     {
-        name = "pickCarrots",
+        name = "pickCarrotsMode",
         label = "Pick carrots", -- and carrat
         options = 
         {
@@ -155,7 +155,7 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "pickMandrakes",
+        name = "pickMandrakesMode",
         label = "Pick mandrakes",
         options = 
         {
@@ -166,7 +166,7 @@ configuration_options = {
         default = "no"
     },
     {
-        name = "pickMushrooms",
+        name = "pickMushroomsMode",
         label = "Pick mushrooms", -- excluding mushroom farm and already picked ones
         options = 
         {
@@ -177,7 +177,7 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "pickTwigs",
+        name = "pickTwigsMode",
         label = "Pick twigs",
         options = 
         {
@@ -188,7 +188,7 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "pickRot",
+        name = "pickRotMode",
         label = "Pick rot",
         options = 
         {
@@ -199,7 +199,7 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "pickSeeds",
+        name = "pickSeedsMode",
         label = "Pick seeds",
         options = 
         {
@@ -210,7 +210,7 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "pickRocks",
+        name = "pickRocksMode",
         label = "Pick rocks",
         options = 
         {
@@ -221,7 +221,7 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "pickFlint",
+        name = "pickFlintMode",
         label = "Pick flint",
         options = 
         {
@@ -232,7 +232,7 @@ configuration_options = {
         default = "yes"
     },
     {
-        name = "pickTreeBlossom",
+        name = "pickTreeBlossomMode",
         label = "Pick tree blossom", -- both perishing and worldgen
         options = 
         {
@@ -243,7 +243,7 @@ configuration_options = {
         default = "cherryPickOnly"
     },
     {
-        name = "werebeaverDig",
+        name = "digStumpsAsWerebeaver",
         label = "Dig stumps as werebeaver",
         options = 
         {
