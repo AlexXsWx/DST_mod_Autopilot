@@ -1,12 +1,12 @@
-local constants         = require "actionQueuerPlus/constants"
-local utils             = require "actionQueuerPlus/utils"
-local asyncUtils        = require "actionQueuerPlus/asyncUtils"
-local logger            = require "actionQueuerPlus/logger"
-local GeoUtil           = require "actionQueuerPlus/GeoUtil"
-local prepareGetActions = require "actionQueuerPlus/prepareGetActions"
-local mouseAPI          = require "actionQueuerPlus/mouseAPI"
-local MouseManager      = require "actionQueuerPlus/MouseManager"
-local SelectionManager  = require "actionQueuerPlus/SelectionManager"
+local constants        = require "actionQueuerPlus/constants"
+local utils            = require "actionQueuerPlus/utils"
+local asyncUtils       = require "actionQueuerPlus/asyncUtils"
+local logger           = require "actionQueuerPlus/logger"
+local GeoUtil          = require "actionQueuerPlus/GeoUtil"
+local prepareGetAction = require "actionQueuerPlus/prepareGetAction"
+local mouseAPI         = require "actionQueuerPlus/mouseAPI"
+local MouseManager     = require "actionQueuerPlus/MouseManager"
+local SelectionManager = require "actionQueuerPlus/SelectionManager"
 
 -- forward declaration
 local ActionQueuer_initializeMouseManagers
@@ -44,7 +44,7 @@ local ActionQueuer = Class(function(self, playerInst)
 
     -- cache
 
-    self._getActions = prepareGetActions(playerInst)
+    self._getAction = prepareGetAction(playerInst)
     self._startThread = asyncUtils.getStartThread(playerInst)
 
     --
@@ -67,7 +67,7 @@ end)
 
 function ActionQueuer:Configure(config)
     self._config = config
-    self._getActions = prepareGetActions(
+    self._getAction = prepareGetAction(
         self._playerInst,
         {
             pickFlowersMode     = config.pickFlowersMode,
@@ -147,8 +147,9 @@ ActionQueuer_initializeMouseManagers = function(self)
     end
 
     local canActUponEntity = function(entity, right, cherrypickingOrDeselecting)
-        local actions = self._getActions(entity, right, cherrypickingOrDeselecting)
-        return utils.toboolean(actions[1])
+        return utils.toboolean(
+            self._getAction(entity, right, cherrypickingOrDeselecting)
+        )
     end
 
     local apply = function(optSelectionBoxProjected, right, cherrypicking)
@@ -332,18 +333,16 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
 
             if not target then break end
 
-            local actions = self._getActions(
+            local action = self._getAction(
                 target,
                 self._selectionManager:IsSelectedWithRight(target),
                 cherrypicking
             )
             local targetPosition = target:GetPosition()
 
-            if #actions >= 1 and smartDoNextAction(target, actions[1]) then
+            if action and smartDoNextAction(target, action) then
 
-                local action = actions[1].action
-
-                if action == ACTIONS.WALKTO then
+                if action.action == ACTIONS.WALKTO then
                     Sleep(0.2)
                     playerInst.components.locomotor:Stop()
                 end
@@ -353,11 +352,11 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
                 ActionQueuer_waitAction(self, true, function()
                     -- Don't wait for animation end when chopping and digging finished
                     return (
-                        action == ACTIONS.CHOP or
-                        action == ACTIONS.DIG
+                        action.action == ACTIONS.CHOP or
+                        action.action == ACTIONS.DIG
                     ) and (
                         not utils.testEntity(target) or
-                        not target:HasTag(action.id.."_workable")
+                        not target:HasTag(action.action.id.."_workable")
                     )
                 end)
 
@@ -365,7 +364,7 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
                 if (
                     self._config.autoCollect and
                     targetPosition and
-                    constants.AUTO_COLLECT_ACTIONS[action]
+                    constants.AUTO_COLLECT_ACTIONS[action.action]
                 ) then
                     ActionQueuer_autoCollect(self, targetPosition)
                 end

@@ -55,7 +55,7 @@ function utils.testEntity(entity)
     )
 end
 
--- TODO: move to some more appropriate place, maybe prepareGetActions / actionsHelper?
+-- TODO: move to some more appropriate place, maybe prepareGetAction / actionsHelper?
 
 function utils.shouldIgnorePickupTarget(entity)
     return utils.toboolean(

@@ -98,62 +98,43 @@ local special_cases = {
 
 ----------------------------------------------------------------
 
--- WARNING: this also mutates the given actions by setting `isRight` property
-local function filterActions(
-    actions, target, right, cherrypickingOrDeselecting, optConfig
+local function isActionAllowed(
+    action, target, right, cherrypickingOrDeselecting, optConfig
 )
-    local nactions = {}
-    for i, v in ipairs(actions) do
-        if (
-            v ~= nil and
-            constants.ALLOWED_ACTIONS[v.action] and
-            (
-                special_cases[v.action] == nil or
-                special_cases[v.action](
-                    target, right, cherrypickingOrDeselecting, optConfig
-                )
+    return (
+        constants.ALLOWED_ACTIONS[action] and (
+            special_cases[action] == nil or
+            special_cases[action](
+                target, right, cherrypickingOrDeselecting, optConfig
             )
-        ) then
-            -- Mutation
-            v.isRight = right
-            table.insert(nactions, v)
-        end
-    end
-    return nactions
+        )
+    )
 end
 
-local function prepareGetActions(playerInst, optConfig)
-    local function getActions(target, right, cherrypickingOrDeselecting)
-        local actions = nil
+local function prepareGetAction(playerInst, optConfig)
+    local function getAction(target, right, cherrypickingOrDeselecting)
 
-        local useitem   = playerInst.replica.inventory:GetActiveItem()
-        local equipitem = playerInst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
-
+        local pos = target:GetPosition()
         local actionPicker = playerInst.components.playeractionpicker
 
-        if right and target ~= nil and actionPicker.containers[target] then
-            actions = actionPicker:GetSceneActions(target, true)
-        elseif useitem ~= nil and useitem:IsValid() then
-            if target == playerInst then
-                actions = actionPicker:GetInventoryActions(useitem, right)
-            elseif target ~= nil then
-                actions = actionPicker:GetUseItemActions(target, useitem, right)
-            end
-        elseif target ~= nil and target ~= playerInst then
-            if equipitem ~= nil and equipitem:IsValid() then
-                actions = actionPicker:GetEquippedItemActions(target, equipitem, right)
-            end
-            if actions == nil or #actions == 0 then
-                actions = actionPicker:GetSceneActions(target, right)
+        local potentialActions
+        if right then
+            potentialActions = actionPicker:GetRightClickActions(pos, target)
+        else
+            potentialActions = actionPicker:GetLeftClickActions(pos, target)
+        end
+
+        for _, act in ipairs(potentialActions) do
+            if isActionAllowed(act.action, target, right, cherrypickingOrDeselecting, optConfig) then
+                -- Mutation
+                act.isRight = right
+                return act
             end
         end
-        actions = actions or {}
 
-        return filterActions(
-            actions, target, right, cherrypickingOrDeselecting, optConfig
-        )
+        return nil
     end
-    return getActions
+    return getAction
 end
 
-return prepareGetActions
+return prepareGetAction
