@@ -350,7 +350,16 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
 
                 if self._interrupted then break end
 
-                ActionQueuer_waitAction(self, true)
+                ActionQueuer_waitAction(self, true, function()
+                    -- Don't wait for animation end when chopping and digging finished
+                    return (
+                        action == ACTIONS.CHOP or
+                        action == ACTIONS.DIG
+                    ) and (
+                        not utils.testEntity(target) or
+                        not target:HasTag(action.id.."_workable")
+                    )
+                end)
 
                 -- TODO: only apply to newly appeared entities
                 if (
@@ -399,12 +408,13 @@ end
 
 --------------------------------------------------------------------
 
-ActionQueuer_waitAction = function(self, optWaitWork)
+ActionQueuer_waitAction = function(self, optWaitWork, optCancelEarly)
     local playerInst = self._playerInst
     local playerController = playerInst.components.playercontroller
     if playerController.locomotor ~= nil then
         repeat Sleep(0.06) until (
             self._interrupted or
+            optCancelEarly and optCancelEarly() or 
             (
                 playerInst:HasTag("idle") and
                 playerInst.sg and

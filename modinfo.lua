@@ -21,7 +21,6 @@ description = (
 -- * Zig-zag planting trees? hex placing?
 -- * Auto pick up seeds / scare birds / wait for butterflies / wait for shadow creatures?
 -- * World-aligned coords?
--- * Reduced cooldown on chopping burnt trees / digging up tree trunks
 -- * Smarter/faster bulk pick-up?
 -- * Repeat walk in direction
 -- * Repeat walk along edge?
