@@ -4,6 +4,8 @@ local utils            = require "actionQueuerPlus/utils"
 local asyncUtils       = require "actionQueuerPlus/asyncUtils"
 local highlightHelper  = require "actionQueuerPlus/highlightHelper"
 
+local ActionQueuerPlusOptionsScreen = require("screens/actionqueuerplusoptionsscreen")
+
 Assets = {
     Asset("ATLAS", "images/selection_square.xml"),
     Asset("IMAGE", "images/selection_square.tex"),
@@ -21,6 +23,8 @@ local updateInputHandler
 local enableAutoRepeatCraft
 -------------------------
 
+local config = {}
+
 local function main()
     logger.logDebug("main")
     AddPlayerPostInit(onPlayerPostInit)
@@ -37,22 +41,13 @@ onPlayerPostInit = function(playerInst)
     )
 end
 
-initActionQueuerPlus = function(playerInst)
-    logger.logDebug("initActionQueuerPlus")
+local function updateConfig()
 
-    highlightHelper.applyUnhighlightOverride(playerInst)
-
-    -- parse config
     local keyToQueueActions    = assert(keyMap[GetModConfigData("keyToQueueActions")])
     local altKeyToQueueActions = keyMap[GetModConfigData("altKeyToQueueActions")] or nil
     local optKeyToDeselect     = keyMap[GetModConfigData("keyToDeselect")] or nil
     local optKeyToInterrupt    = keyMap[GetModConfigData("keyToInterrupt")] or nil
     local altKeyToInterrupt    = keyMap[GetModConfigData("altKeyToInterrupt")] or nil
-    local autoCollect          = GetModConfigData("autoCollect") == "yes"
-    local interruptOnMove      = GetModConfigData("interruptOnMove") == "yes"
-    local pickFlowersMode      = GetModConfigData("pickFlowers")
-    local pickCarrotsMode      = GetModConfigData("pickCarrots")
-    local pickMandrakesMode    = GetModConfigData("pickMandrakes")
 
     local function isSelectKeyDown()
         return (
@@ -72,37 +67,46 @@ initActionQueuerPlus = function(playerInst)
         )
     end
 
+    config.autoCollect        = GetModConfigData("autoCollect") == "yes"
+    config.interruptOnMove    = GetModConfigData("interruptOnMove") == "yes"
+    config.pickFlowersMode    = GetModConfigData("pickFlowers")
+    config.pickCarrotsMode    = GetModConfigData("pickCarrots")
+    config.pickMandrakesMode  = GetModConfigData("pickMandrakes")
+    config.isSelectKeyDown    = isSelectKeyDown
+    config.isDeselectKeyDown  = isDeselectKeyDown
+    config.isInterruptKeyDown = isInterruptKeyDown
+end
+
+local function reconfigureComponent(actionqueuerplus)
+    actionqueuerplus:Configure({
+        autoCollect       = config.autoCollect,
+        isSelectKeyDown   = config.isSelectKeyDown,
+        isDeselectKeyDown = config.isDeselectKeyDown,
+        pickFlowersMode   = config.pickFlowersMode,
+        pickCarrotsMode   = config.pickCarrotsMode,
+        pickMandrakesMode = config.pickMandrakesMode,
+    })
+end
+
+initActionQueuerPlus = function(playerInst)
+    logger.logDebug("initActionQueuerPlus")
+
+    highlightHelper.applyUnhighlightOverride(playerInst)
+
+    updateConfig()
+
     if not playerInst.components.actionqueuerplus then
         playerInst:AddComponent("actionqueuerplus")
-        playerInst.components.actionqueuerplus:Configure({
-            autoCollect       = autoCollect,
-            isSelectKeyDown   = isSelectKeyDown,
-            isDeselectKeyDown = isDeselectKeyDown,
-            pickFlowersMode   = pickFlowersMode,
-            pickCarrotsMode   = pickCarrotsMode,
-            pickMandrakesMode = pickMandrakesMode,
-        })
-        updateInputHandler(
-            playerInst,
-            isSelectKeyDown,
-            isDeselectKeyDown,
-            isInterruptKeyDown,
-            interruptOnMove
-        )
+        reconfigureComponent(playerInst.components.actionqueuerplus)
+        updateInputHandler(playerInst, config)
     else
         logger.logWarning("actionqueuerplus component already exists")
     end
 
-    enableAutoRepeatCraft(playerInst, isSelectKeyDown)
+    enableAutoRepeatCraft(playerInst, config)
 end
 
-updateInputHandler = function(
-    playerInst,
-    isSelectKeyDown,
-    isDeselectKeyDown,
-    isInterruptKeyDown,
-    interruptOnMove
-)
+updateInputHandler = function(playerInst, config)
     logger.logDebug("updateInputHandler")
     utils.overrideToCancelIf(
         playerInst.components.playercontroller,
@@ -112,14 +116,14 @@ updateInputHandler = function(
                 return false
             end
 
-            if isSelectKeyDown() or isDeselectKeyDown() then
+            if config.isSelectKeyDown() or config.isDeselectKeyDown() then
                 return true
             end
 
             local actionqueuerplus = playerInst.components.actionqueuerplus
 
             if (
-                isInterruptKeyDown() and
+                config.isInterruptKeyDown() and
                 actionqueuerplus:CanInterrupt()
             ) then
                 actionqueuerplus:Interrupt()
@@ -127,7 +131,7 @@ updateInputHandler = function(
             end
 
             if (
-                interruptOnMove and (
+                config.interruptOnMove and (
                     TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_UP) or
                     TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_DOWN) or
                     TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_LEFT) or
@@ -143,15 +147,28 @@ updateInputHandler = function(
             end
         end
     )
+
+    TheInput:AddKeyDownHandler(
+        -- FIXME: allow to configure
+        GLOBAL.KEY_X,
+        function()
+            local onUpdate = function()
+                updateConfig()
+                reconfigureComponent(playerInst.components.actionqueuerplus)            
+            end
+            local screen = ActionQueuerPlusOptionsScreen(modname, onUpdate)
+            GLOBAL.TheFrontEnd:PushScreen(screen)
+        end
+    )
 end
 
-enableAutoRepeatCraft = function(playerInst, isSelectKeyDown)
+enableAutoRepeatCraft = function(playerInst, config)
     logger.logDebug("enableAutoRepeatCraft")
     utils.overrideToCancelIf(
         playerInst.replica.builder,
         "MakeRecipeFromMenu",
         function(self, recipe, skin)
-            if isSelectKeyDown() and recipe.placer == nil then
+            if config.isSelectKeyDown() and recipe.placer == nil then
                 playerInst.components.actionqueuerplus:RepeatRecipe(recipe, skin)
                 return true
             end
