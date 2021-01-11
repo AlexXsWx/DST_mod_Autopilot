@@ -36,10 +36,21 @@ local special_cases = {
                     target.prefab == "cave_fern"
                 ) or
                 testCherryPick(optConfig.pickCarrotsMode, cherrypickingOrDeselecting) and (
-                    target.prefab == "carrot_planted"
+                    target.prefab == "carrot_planted" or
+                    target.prefab == "carrat_planted"
                 ) or
                 testCherryPick(optConfig.pickMandrakesMode, cherrypickingOrDeselecting) and (
                     target.prefab == "mandrake_planted"
+                ) or
+                testCherryPick(optConfig.pickMushroomsMode, cherrypickingOrDeselecting) and (
+                    target.prefab == "red_mushroom" or
+                    target.prefab == "green_mushroom" or
+                    target.prefab == "blue_mushroom"
+                ) or
+                testCherryPick(optConfig.pickTwigsMode, cherrypickingOrDeselecting) and (
+                    target.prefab == "sapling" or
+                    target.prefab == "sapling_moon" or
+                    target.prefab == "marsh_bush"
                 )
             )
         )
@@ -53,8 +64,31 @@ local special_cases = {
         return not (right or target:HasTag("cage"))
     end,
 
-    [ACTIONS.PICKUP] = function(target, right)
-        return not (right or utils.shouldIgnorePickupTarget(target))
+    [ACTIONS.PICKUP] = function(target, right, cherrypickingOrDeselecting, optConfig)
+        return not (
+            right or
+            utils.shouldIgnorePickupTarget(target) or
+            -- TODO: move to utils.shouldIgnorePickupTarget?
+            testCherryPick(optConfig.pickTwigsMode, cherrypickingOrDeselecting) and (
+                target.prefab == "twigs"
+            ) or
+            testCherryPick(optConfig.pickRotMode, cherrypickingOrDeselecting) and (
+                target.prefab == "spoiled_food"
+            ) or
+            testCherryPick(optConfig.pickSeedsMode, cherrypickingOrDeselecting) and (
+                target.prefab == "seeds"
+            ) or
+            testCherryPick(optConfig.pickFlintMode, cherrypickingOrDeselecting) and (
+                target.prefab == "flint"
+            ) or
+            testCherryPick(optConfig.pickRocksMode, cherrypickingOrDeselecting) and (
+                target.prefab == "rocks"
+            ) or
+            testCherryPick(optConfig.pickTreeBlossomMode, cherrypickingOrDeselecting) and (
+                target.prefab == "moon_tree_blossom" or
+                target.prefab == "moon_tree_blossom_worldgen"
+            )
+        )
     end,
 
     [ACTIONS.EAT] = function(target, right, cherrypickingOrDeselecting, optConfig)

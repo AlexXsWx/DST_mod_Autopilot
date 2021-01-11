@@ -70,9 +70,16 @@ function ActionQueuer:Configure(config)
     self._getActions = prepareGetActions(
         self._playerInst,
         {
-            pickFlowersMode   = config.pickFlowersMode,
-            pickCarrotsMode   = config.pickCarrotsMode,
-            pickMandrakesMode = config.pickMandrakesMode,
+            pickFlowersMode     = config.pickFlowersMode,
+            pickCarrotsMode     = config.pickCarrotsMode,
+            pickMandrakesMode   = config.pickMandrakesMode,
+            pickMushroomsMode   = config.pickMushroomsMode,
+            pickTwigsMode       = config.pickTwigsMode,
+            pickRotMode         = config.pickRotMode,
+            pickSeedsMode       = config.pickSeedsMode,
+            pickRocksMode       = config.pickRocksMode,
+            pickFlintMode       = config.pickFlintMode,
+            pickTreeBlossomMode = config.pickTreeBlossomMode,
         }
     )
     if self._mouseManager then

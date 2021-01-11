@@ -137,7 +137,7 @@ configuration_options = {
     },
     {
         name = "pickFlowers",
-        label = "Pick flowers",
+        label = "Pick flowers", -- also evil flowers, cave fern and succulent
         options = 
         {
             { description = "no",               data = "no"             },
@@ -148,7 +148,7 @@ configuration_options = {
     },
     {
         name = "pickCarrots",
-        label = "Pick carrots",
+        label = "Pick carrots", -- and carrat
         options = 
         {
             { description = "no",               data = "no"             },
@@ -167,6 +167,83 @@ configuration_options = {
             { description = "yes",              data = "yes"            },
         },
         default = "no"
+    },
+    {
+        name = "pickMushrooms",
+        label = "Pick mushrooms", -- excluding mushroom farm and already picked ones
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "yes"
+    },
+    {
+        name = "pickTwigs",
+        label = "Pick twigs",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "yes"
+    },
+    {
+        name = "pickRot",
+        label = "Pick rot",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "yes"
+    },
+    {
+        name = "pickSeeds",
+        label = "Pick seeds",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "yes"
+    },
+    {
+        name = "pickRocks",
+        label = "Pick rocks",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "yes"
+    },
+    {
+        name = "pickFlint",
+        label = "Pick flint",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "yes"
+    },
+    {
+        name = "pickTreeBlossom",
+        label = "Pick tree blossom", -- both perishing and worldgen
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "cherryPickOnly"
     },
 }
 
