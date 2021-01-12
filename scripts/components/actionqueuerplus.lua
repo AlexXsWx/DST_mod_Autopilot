@@ -21,14 +21,7 @@ local canAutoCollectEntity
 
 local ActionQueuer = Class(function(self, playerInst)
 
-    -- TODO: figure out what's this for
-    self.event_listeners = nil
-
-    --
-
     self._playerInst = playerInst
-
-    --
 
     self._config = {
         autoCollect = false,
@@ -36,6 +29,8 @@ local ActionQueuer = Class(function(self, playerInst)
         isDeselectKeyDown = nil,
         settingsForFilters = {},
     }
+
+    --
 
     self._selectionManager = SelectionManager()
 

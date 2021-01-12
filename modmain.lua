@@ -73,8 +73,8 @@ local function updateConfig()
     config.isDeselectKeyDown   = isDeselectKeyDown
     config.isInterruptKeyDown  = isInterruptKeyDown
 
-    config.autoCollect         = GetModConfigData("autoCollect") == "yes"
-    config.interruptOnMove     = GetModConfigData("interruptOnMove") == "yes"
+    config.autoCollect     = GetModConfigData("autoCollect") == "yes"
+    config.interruptOnMove = GetModConfigData("interruptOnMove") == "yes"
 
     --
 
@@ -120,12 +120,12 @@ initActionQueuerPlus = function(playerInst)
     if not playerInst.components.actionqueuerplus then
         playerInst:AddComponent("actionqueuerplus")
         reconfigureComponent(playerInst.components.actionqueuerplus)
-        updateInputHandler(playerInst, config)
+        updateInputHandler(playerInst)
     else
         logger.logWarning("actionqueuerplus component already exists")
     end
 
-    enableAutoRepeatCraft(playerInst, config)
+    enableAutoRepeatCraft(playerInst)
 end
 
 --
@@ -142,7 +142,7 @@ end
 
 --
 
-updateInputHandler = function(playerInst, config)
+updateInputHandler = function(playerInst)
     logger.logDebug("updateInputHandler")
     utils.overrideToCancelIf(
         playerInst.components.playercontroller,
@@ -231,7 +231,7 @@ updateInputHandler = function(playerInst, config)
     tryBindOpenMenu()
 end
 
-enableAutoRepeatCraft = function(playerInst, config)
+enableAutoRepeatCraft = function(playerInst)
     logger.logDebug("enableAutoRepeatCraft")
     utils.overrideToCancelIf(
         playerInst.replica.builder,
