@@ -23,6 +23,8 @@ local autoCollectAfterActions = {
 local allowedDeployModes = {
     [DEPLOYMODE.PLANT] = true,
     [DEPLOYMODE.WALL] = true,
+    -- wormwood planting seeds without turf requirement
+    [DEPLOYMODE.CUSTOM] = true,
 }
 
 local allowedDeployPrefabs = {
@@ -143,8 +145,12 @@ local isActionAllowedMap = {
 }
 
 function allowedActions.isActionAllowed(action, context, config)
-    local testFn = isActionAllowedMap[action]
-    return testFn and testFn(context, config) or false
+    local testFn = isActionAllowedMap[action.action]
+    local allowed = testFn and testFn(context, config) or false
+    if not allowed then
+        logger.logDebug("Action " .. tostring(action) .. " not allowed")
+    end
+    return allowed
 end
 
 function allowedActions.shouldIgnorePickupTarget(entity)
@@ -177,10 +183,19 @@ end
 
 function allowedActions.canDeployItem(item)
     if not item then return false end
-    return utils.toboolean(
+    local deployMode = allowedActions.getItemDeployMode(item)
+    local allowed = utils.toboolean(
         allowedDeployPrefabs[item.prefab] or
-        allowedDeployModes[allowedActions.getItemDeployMode(item)]
+        allowedDeployModes[deployMode]
     )
+    if not allowed then
+        logger.logDebug(
+            "Deploy " ..
+            item.prefab .. " / " .. deployMode ..
+            " not allowed"
+        )
+    end
+    return allowed
 end
 
 return allowedActions

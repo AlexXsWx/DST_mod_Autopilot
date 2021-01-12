@@ -15,7 +15,6 @@ description = (
 )
 
 -- TODO:
--- * Support Wormwood planting seeds
 -- * Support new farming? (use hoe, talk to plants)
 -- * Zig-zag planting trees? hex placing?
 -- * Auto pick up seeds / scare birds / wait for butterflies / wait for shadow creatures?

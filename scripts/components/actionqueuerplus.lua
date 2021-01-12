@@ -240,11 +240,9 @@ ActionQueuer_applyToDeploy = function(self, selectionBoxProjected)
 
         local deployMode = allowedActions.getItemDeployMode(initiallyActiveItem)
         local function canDeployItemAtPosition(item, position)
-            return (
-                item.replica.inventoryitem:CanDeploy(position) and (
-                    deployMode ~= DEPLOYMODE.WALL or
-                    utils.canPlayerDeployAWallAt(playerInst, position)
-                )
+            return item.replica.inventoryitem:CanDeploy(position, nil, playerInst) and (
+                deployMode ~= DEPLOYMODE.WALL or
+                utils.canPlayerDeployAWallAt(playerInst, position)
             )
         end
 
@@ -439,7 +437,7 @@ getAction = function(context, config)
     end
 
     for _, act in ipairs(potentialActions) do
-        if allowedActions.isActionAllowed(act.action, context, config) then
+        if allowedActions.isActionAllowed(act, context, config) then
             -- FIXME: Mutation
             act.isRight = context.right
             return act
