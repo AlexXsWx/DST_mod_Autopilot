@@ -4,7 +4,7 @@ local Spinner        = require "widgets/spinner"
 local Widget         = require "widgets/widget"
 local ScrollableList = require "widgets/scrollablelist"
 
-local createScrollableWindow = require "actionQueuerPlus/createScrollableWindow"
+local createScrollableWindow = require "actionQueuerPlus/ui/createScrollableWindow"
 
 -- forward declaration --
 local OptionsScreen_Apply

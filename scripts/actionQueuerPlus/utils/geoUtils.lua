@@ -1,8 +1,8 @@
-local GeoUtil = {}
+local geoUtils = {}
 
 --
 
-function GeoUtil.ManhattanDistance(vecA, vecB)
+function geoUtils.ManhattanDistance(vecA, vecB)
     return (
         math.abs(vecA.x - vecB.x) +
         math.abs(vecA.y - vecB.y) +
@@ -12,7 +12,7 @@ end
 
 --
 
-function GeoUtil.MapScreenPt(screenX, screenY)
+function geoUtils.MapScreenPt(screenX, screenY)
     return Vector3(TheSim:ProjectScreenPos(screenX, screenY))
 end
 
@@ -20,7 +20,7 @@ end
 
 -- Returns a function which computes the barycentric coordinates of its input
 -- relative to (Origin, A, B), where A-Origin and B-Origin define two directions
-function GeoUtil.BarycentricCoordinates(vecOrigin, vecA, vecB)
+function geoUtils.BarycentricCoordinates(vecOrigin, vecA, vecB)
     local dirA = vecA - vecOrigin
     local dirB = vecB - vecOrigin
 
@@ -44,8 +44,8 @@ function GeoUtil.BarycentricCoordinates(vecOrigin, vecA, vecB)
 end
 
 -- Returns a function which tests if a point is in a given triangle
-function GeoUtil.CreateTriangleTester(vecOrigin, vecA, vecB)
-    local coordsOf = GeoUtil.BarycentricCoordinates(vecOrigin, vecA, vecB)
+function geoUtils.CreateTriangleTester(vecOrigin, vecA, vecB)
+    local coordsOf = geoUtils.BarycentricCoordinates(vecOrigin, vecA, vecB)
 
     return function(vec)
         local u, v = coordsOf(vec)
@@ -62,9 +62,9 @@ end
 --   |   \ |
 --   A --- B
 --
-function GeoUtil.CreateQuadrilateralTester(A, B, C, D)
-    local tritest1 = GeoUtil.CreateTriangleTester(A, B, C)
-    local tritest2 = GeoUtil.CreateTriangleTester(C, D, A)
+function geoUtils.CreateQuadrilateralTester(A, B, C, D)
+    local tritest1 = geoUtils.CreateTriangleTester(A, B, C)
+    local tritest2 = geoUtils.CreateTriangleTester(C, D, A)
 
     return function(vec)
         return tritest1(vec) or tritest2(vec)
@@ -160,7 +160,7 @@ end
 
 -- Returns a function that on each call returns a new position that fulfills given criteria
 -- and is within the given quad
-function GeoUtil.createPositionIterator(quad)
+function geoUtils.createPositionIterator(quad)
 
     -- B-----C
     -- |    /.
@@ -228,4 +228,4 @@ end
 
 --
 
-return GeoUtil
+return geoUtils

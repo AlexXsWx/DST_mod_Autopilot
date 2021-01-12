@@ -1,9 +1,10 @@
 local constants       = require "actionQueuerPlus/constants"
-local utils           = require "actionQueuerPlus/utils"
-local asyncUtils      = require "actionQueuerPlus/asyncUtils"
-local GeoUtil         = require "actionQueuerPlus/GeoUtil"
-local mouseAPI        = require "actionQueuerPlus/mouseAPI"
-local SelectionWidget = require "actionQueuerPlus/SelectionWidget"
+local logger          = require "actionQueuerPlus/utils/logger"
+local utils           = require "actionQueuerPlus/utils/utils"
+local asyncUtils      = require "actionQueuerPlus/utils/asyncUtils"
+local geoUtils        = require "actionQueuerPlus/geoUtils"
+local mouseAPI        = require "actionQueuerPlus/input/mouseAPI"
+local SelectionWidget = require "actionQueuerPlus/ui/SelectionWidget"
 
 -- forward declaration --
 local MouseManager_CreateNewSession
@@ -232,7 +233,7 @@ MouseManager_StartSelectionBox = function(self, right)
             MouseManager_UpdateSession(self)
             if (
                 self._session.selectionBoxProjected or
-                constants.MANHATTAN_DISTANCE_TO_START_BOX_SELECTION < GeoUtil.ManhattanDistance(
+                constants.MANHATTAN_DISTANCE_TO_START_BOX_SELECTION < geoUtils.ManhattanDistance(
                     self._session.mousePositionStart,
                     self._session.mousePositionCurrent
                 )
@@ -281,17 +282,17 @@ MouseManager_UpdateSelectionBox = function(self, right)
         -- each tile has a side of 4 units
         -- geometric placement makes 8x8 points per tile
         --
-        A = GeoUtil.MapScreenPt(minX, minY),
-        B = GeoUtil.MapScreenPt(minX, maxY), 
-        C = GeoUtil.MapScreenPt(maxX, maxY),
-        D = GeoUtil.MapScreenPt(maxX, minY)
+        A = geoUtils.MapScreenPt(minX, minY),
+        B = geoUtils.MapScreenPt(minX, maxY), 
+        C = geoUtils.MapScreenPt(maxX, maxY),
+        D = geoUtils.MapScreenPt(maxX, minY)
     }
 
     local quad = session.selectionBoxProjected
 
-    local isBounded = GeoUtil.CreateQuadrilateralTester(quad.A, quad.B, quad.C, quad.D)
+    local isBounded = geoUtils.CreateQuadrilateralTester(quad.A, quad.B, quad.C, quad.D)
 
-    local selectionBoxCenter = GeoUtil.MapScreenPt((minX + maxX) / 2, (minY + maxY) / 2)
+    local selectionBoxCenter = geoUtils.MapScreenPt((minX + maxX) / 2, (minY + maxY) / 2)
 
     local selectionBoxOuterRadius = math.sqrt(
         math.max(

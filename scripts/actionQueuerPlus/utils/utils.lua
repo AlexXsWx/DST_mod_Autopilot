@@ -1,5 +1,5 @@
 local constants = require "actionQueuerPlus/constants"
-local logger    = require "actionQueuerPlus/logger"
+local logger    = require "actionQueuerPlus/utils/logger"
 
 local utils = {}
 

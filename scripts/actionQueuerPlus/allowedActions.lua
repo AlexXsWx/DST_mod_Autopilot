@@ -1,5 +1,5 @@
-local utils  = require "actionQueuerPlus/utils"
-local logger = require "actionQueuerPlus/logger"
+local utils  = require "actionQueuerPlus/utils/utils"
+local logger = require "actionQueuerPlus/utils/logger"
 
 local function allow(context, config)        return true              end
 local function allowIfLeft(context, config)  return not context.right end

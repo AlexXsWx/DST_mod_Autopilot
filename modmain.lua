@@ -1,7 +1,7 @@
-local keyMap           = require "actionQueuerPlus/keyMap"
-local logger           = require "actionQueuerPlus/logger"
-local utils            = require "actionQueuerPlus/utils"
-local asyncUtils       = require "actionQueuerPlus/asyncUtils"
+local keyMap           = require "actionQueuerPlus/input/keyMap"
+local logger           = require "actionQueuerPlus/utils/logger"
+local utils            = require "actionQueuerPlus/utils/utils"
+local asyncUtils       = require "actionQueuerPlus/utils/asyncUtils"
 local highlightHelper  = require "actionQueuerPlus/highlightHelper"
 
 local OptionsScreen = require("screens/actionqueuerplusoptionsscreen")

@@ -1,10 +1,10 @@
 local constants        = require "actionQueuerPlus/constants"
-local utils            = require "actionQueuerPlus/utils"
-local asyncUtils       = require "actionQueuerPlus/asyncUtils"
-local logger           = require "actionQueuerPlus/logger"
-local GeoUtil          = require "actionQueuerPlus/GeoUtil"
+local utils            = require "actionQueuerPlus/utils/utils"
+local asyncUtils       = require "actionQueuerPlus/utils/asyncUtils"
+local logger           = require "actionQueuerPlus/utils/logger"
+local geoUtils         = require "actionQueuerPlus/geoUtils"
 local allowedActions   = require "actionQueuerPlus/allowedActions"
-local mouseAPI         = require "actionQueuerPlus/mouseAPI"
+local mouseAPI         = require "actionQueuerPlus/input/mouseAPI"
 local MouseManager     = require "actionQueuerPlus/MouseManager"
 local SelectionManager = require "actionQueuerPlus/SelectionManager"
 
@@ -219,7 +219,7 @@ ActionQueuer_applyToDeploy = function(self, selectionBoxProjected)
 
     if self._activeThread then return end
 
-    local getNextDeployPosition = GeoUtil.createPositionIterator(selectionBoxProjected)
+    local getNextDeployPosition = geoUtils.createPositionIterator(selectionBoxProjected)
 
     if (
         getNextDeployPosition == nil or

@@ -1,6 +1,6 @@
 local Highlight = require "components/highlight"
 
-local utils = require "actionQueuerPlus/utils"
+local utils = require "actionQueuerPlus/utils/utils"
 
 local highlightHelper = {}
 

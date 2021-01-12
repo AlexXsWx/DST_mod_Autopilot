@@ -1,4 +1,4 @@
-local utils           = require "actionQueuerPlus/utils"
+local utils           = require "actionQueuerPlus/utils/utils"
 local highlightHelper = require "actionQueuerPlus/highlightHelper"
 
 local SelectionManager = Class(function(self)
