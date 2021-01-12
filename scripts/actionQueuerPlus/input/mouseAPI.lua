@@ -21,12 +21,6 @@ function mouseAPI.initializeHandlerAddrs()
     if handlerAddrsInitialized then return end
     handlerAddrsInitialized = true
 
-    local TheFrontEnd = rawget(_G, "TheFrontEnd")
-    if not TheFrontEnd then
-        logger.logError("Unable to initialize mouseAPI")
-        return
-    end
-
     utils.override(
         TheFrontEnd,
         "OnMouseButton",

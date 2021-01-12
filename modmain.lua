@@ -12,8 +12,6 @@ Assets = {
     Asset("IMAGE", "images/selection_square.tex"),
 }
 
-_G = GLOBAL
-
 local TheInput = GLOBAL.TheInput
 local assert = GLOBAL.assert
 
@@ -133,7 +131,7 @@ end
 
 -- We want to make sure that chatting, or being in menus, etc, doesn't toggle
 local function getActiveScreenName()
-    local screen = GLOBAL.TheFrontEnd:GetActiveScreen()
+    local screen = TheFrontEnd:GetActiveScreen()
     return screen and screen.name or ""
 end
 
