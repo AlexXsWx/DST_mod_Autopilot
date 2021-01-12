@@ -203,7 +203,8 @@ local function createPreventRepeatAction()
                     -- Without this, character attempts to repair each leak twice
                     action == ACTIONS.REPAIR_LEAK or
                     -- Fix for gate door
-                    action == ACTIONS.ACTIVATE
+                    action == ACTIONS.ACTIVATE or
+                    action == ACTIONS.ASSESSPLANTHAPPINESS
                 )
             )
         ) then

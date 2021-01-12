@@ -48,6 +48,12 @@ local isActionAllowedMap = {
     -- (e.g. heal abigal using glands)
     [ACTIONS.HEAL]        = allow,
 
+    -- talking to plants
+    [ACTIONS.INTERACT_WITH] = allow,
+    [ACTIONS.ASSESSPLANTHAPPINESS] = function(context, config)
+        return not context.right and context.cherrypicking
+    end,
+
     [ACTIONS.HAMMER] = allowIfRight,
 
     [ACTIONS.GIVE]       = allowIfLeft,
