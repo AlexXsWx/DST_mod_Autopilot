@@ -1,6 +1,8 @@
 local utils  = require "actionQueuerPlus/utils/utils"
 local logger = require "actionQueuerPlus/utils/logger"
 
+local allowedActions = {}
+
 local function allow(context, config)        return true              end
 local function allowIfLeft(context, config)  return not context.right end
 local function allowIfRight(context, config) return context.right     end
@@ -15,7 +17,7 @@ local autoCollectAfterActions = {
     [ACTIONS.CHOP] = true,
     [ACTIONS.MINE] = true,
     [ACTIONS.HAMMER] = true,
-    [ACTIONS.DIG] = true
+    [ACTIONS.DIG] = true,
 }
 
 local allowedDeployModes = {
@@ -60,8 +62,8 @@ local isActionAllowedMap = {
     [ACTIONS.DIG] = function(context, config)
         return not (
             not config.digStumpsAsWerebeaver and
-            context.target:HasTag("stump") and
-            context.playerInst:HasTag("beaver")
+            context.playerInst:HasTag("beaver") and
+            context.target:HasTag("stump")
         )
     end,
 
@@ -110,7 +112,7 @@ local isActionAllowedMap = {
         local cherrypickingOrDeselecting = context.cherrypicking or context.deselecting
         return not (
             context.right or
-            utils.shouldIgnorePickupTarget(target) or
+            allowedActions.shouldIgnorePickupTarget(target) or
             -- TODO: move to shouldIgnorePickupTarget?
             testCherryPick(config.pickTwigsMode, cherrypickingOrDeselecting) and (
                 target.prefab == "twigs"
@@ -140,10 +142,8 @@ local isActionAllowedMap = {
     end,
 }
 
-local allowedActions = {}
-
 function allowedActions.isActionAllowed(action, context, config)
-    local testFn = isActionAllowedMap[act.action]
+    local testFn = isActionAllowedMap[action]
     return testFn and testFn(context, config) or false
 end
 

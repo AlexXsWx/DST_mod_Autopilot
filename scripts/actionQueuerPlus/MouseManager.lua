@@ -2,7 +2,7 @@ local constants       = require "actionQueuerPlus/constants"
 local logger          = require "actionQueuerPlus/utils/logger"
 local utils           = require "actionQueuerPlus/utils/utils"
 local asyncUtils      = require "actionQueuerPlus/utils/asyncUtils"
-local geoUtils        = require "actionQueuerPlus/geoUtils"
+local geoUtils        = require "actionQueuerPlus/utils/geoUtils"
 local mouseAPI        = require "actionQueuerPlus/input/mouseAPI"
 local SelectionWidget = require "actionQueuerPlus/ui/SelectionWidget"
 

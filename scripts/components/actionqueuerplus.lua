@@ -2,7 +2,7 @@ local constants        = require "actionQueuerPlus/constants"
 local utils            = require "actionQueuerPlus/utils/utils"
 local asyncUtils       = require "actionQueuerPlus/utils/asyncUtils"
 local logger           = require "actionQueuerPlus/utils/logger"
-local geoUtils         = require "actionQueuerPlus/geoUtils"
+local geoUtils         = require "actionQueuerPlus/utils/geoUtils"
 local allowedActions   = require "actionQueuerPlus/allowedActions"
 local mouseAPI         = require "actionQueuerPlus/input/mouseAPI"
 local MouseManager     = require "actionQueuerPlus/MouseManager"
@@ -34,6 +34,7 @@ local ActionQueuer = Class(function(self, playerInst)
         autoCollect = false,
         isSelectKeyDown   = nil,
         isDeselectKeyDown = nil,
+        settingsForFilters = {},
     }
 
     self._selectionManager = SelectionManager()
@@ -143,7 +144,7 @@ ActionQueuer_initializeMouseManagers = function(self)
                     cherrypicking = cherrypicking,
                     deselecting = deselecting,
                 },
-                self._config.settingsForFilters,
+                self._config.settingsForFilters
             )
         )
     end
@@ -337,7 +338,7 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
                     cherrypicking = cherrypicking,
                     deselecting = false,
                 },
-                self._config.settingsForFilters,
+                self._config.settingsForFilters
             )
             local targetPosition = target:GetPosition()
 
