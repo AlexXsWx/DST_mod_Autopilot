@@ -144,14 +144,14 @@ ActionQueuer_initializeMouseManagers = function(self)
         )
     end
 
-    local apply = function(optSelectionBoxProjected, right, cherrypicking)
+    local apply = function(optSelectionBox, right, cherrypicking)
         if (
             -- TODO: check why originally it was checking for not cherry picking
-            optSelectionBoxProjected and
+            optSelectionBox and
             right and
             allowedActions.canDeployItem(self._playerInst.replica.inventory:GetActiveItem())
         ) then
-            ActionQueuer_applyToDeploy(self, optSelectionBoxProjected)
+            ActionQueuer_applyToDeploy(self, optSelectionBox)
         else
             ActionQueuer_applyToSelection(self, cherrypicking)
         end
@@ -211,11 +211,11 @@ local function isItemValid(item)
     return utils.toboolean(item and item.replica and item.replica.inventoryitem)
 end
 
-ActionQueuer_applyToDeploy = function(self, selectionBoxProjected)
+ActionQueuer_applyToDeploy = function(self, selectionBox)
 
     if self._activeThread then return end
 
-    local getNextDeployPosition = geoUtils.createPositionIterator(selectionBoxProjected)
+    local getNextDeployPosition = geoUtils.createPositionIterator(selectionBox)
 
     if (
         getNextDeployPosition == nil or

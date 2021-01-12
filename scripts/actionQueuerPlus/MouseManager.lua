@@ -114,7 +114,7 @@ MouseManager_CreateNewSession = function(self, mouseButton, mousePosition, selec
         mouseButton = mouseButton,
         mousePositionStart = mousePosition,
         mousePositionCurrent = mousePosition,
-        selectionBoxProjected = nil,
+        selectionBoxActive = false,
         updateSelectionBoxThread = nil,
         selecting = selecting,
     }
@@ -186,17 +186,19 @@ MouseManager_OnUp = function(self, mouseButton)
 
     local right = (mouseButton == MOUSEBUTTON_RIGHT)
 
-    if self._session.selectionBoxProjected then
+    if self._session.selectionBoxActive then
         MouseManager_UpdateSelectionBox(self, right)
         self._selectionManager:SubmitPreview(right)
     else
         MouseManager_CherryPick(self, right)
     end
 
-    local cherrypicking = not self._session.selectionBoxProjected
+    local cherrypicking = not self._session.selectionBoxActive
     self._applyFn(
-        -- selectionBoxProjected can be nil, that's fine
-        self._session.selectionBoxProjected,
+        self._session.selectionBoxActive and {
+            startPos = self._session.mousePositionStart,
+            endPos   = self._session.mousePositionCurrent,
+        } or nil,
         right,
         cherrypicking
     )
@@ -232,12 +234,13 @@ MouseManager_StartSelectionBox = function(self, right)
         while self._isPlayerValid() do
             MouseManager_UpdateSession(self)
             if (
-                self._session.selectionBoxProjected or
+                self._session.selectionBoxActive or
                 constants.MANHATTAN_DISTANCE_TO_START_BOX_SELECTION < geoUtils.ManhattanDistance(
                     self._session.mousePositionStart,
                     self._session.mousePositionCurrent
                 )
             ) then
+                self._session.selectionBoxActive = true
                 MouseManager_UpdateSelectionBox(self, right)
             end
             -- TODO: separate UI feedback and entities finding logic for more fluid user feedback
@@ -253,7 +256,6 @@ MouseManager_UpdateSelectionBox = function(self, right)
 
     local session = self._session
 
-    -- 0:0 = bottom left corner
     local minX = math.min(session.mousePositionStart.x, session.mousePositionCurrent.x)
     local maxX = math.max(session.mousePositionStart.x, session.mousePositionCurrent.x)
     local minY = math.min(session.mousePositionStart.y, session.mousePositionCurrent.y)
@@ -264,42 +266,33 @@ MouseManager_UpdateSelectionBox = function(self, right)
     end
 
     -- TODO: consider keeping 90deg angles
-    session.selectionBoxProjected = {
-        --     North
-        -- -Z  _   _ -X
-        --    |\   /|
-        --      \ /
-        --       X     East
-        --      / \
-        --    |/   \|
-        -- +X        +Z
-        --
-        --    B-----C
-        --    |     |
-        --    |     |
-        --    A-----D
-        --
-        -- each tile has a side of 4 units
-        -- geometric placement makes 8x8 points per tile
-        --
-        A = geoUtils.MapScreenPt(minX, minY),
-        B = geoUtils.MapScreenPt(minX, maxY), 
-        C = geoUtils.MapScreenPt(maxX, maxY),
-        D = geoUtils.MapScreenPt(maxX, minY)
-    }
+    local A = geoUtils.MapScreenPt(
+        session.mousePositionStart.x,
+        session.mousePositionStart.y
+    )
+    local B = geoUtils.MapScreenPt(
+        session.mousePositionCurrent.x,
+        session.mousePositionStart.y
+    )
+    local C = geoUtils.MapScreenPt(
+        session.mousePositionCurrent.x,
+        session.mousePositionCurrent.y
+    )
+    local D = geoUtils.MapScreenPt(
+        session.mousePositionStart.x,
+        session.mousePositionCurrent.y
+    )
 
-    local quad = session.selectionBoxProjected
-
-    local isBounded = geoUtils.CreateQuadrilateralTester(quad.A, quad.B, quad.C, quad.D)
+    local isBounded = geoUtils.CreateQuadrilateralTester(A, B, C, D)
 
     local selectionBoxCenter = geoUtils.MapScreenPt((minX + maxX) / 2, (minY + maxY) / 2)
 
     local selectionBoxOuterRadius = math.sqrt(
         math.max(
-            selectionBoxCenter:DistSq(quad.A),
-            selectionBoxCenter:DistSq(quad.B),
-            selectionBoxCenter:DistSq(quad.C),
-            selectionBoxCenter:DistSq(quad.D)
+            selectionBoxCenter:DistSq(A),
+            selectionBoxCenter:DistSq(B),
+            selectionBoxCenter:DistSq(C),
+            selectionBoxCenter:DistSq(D)
         )
     )
 

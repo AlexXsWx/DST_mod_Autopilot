@@ -159,8 +159,33 @@ local function isOutOfRange(vec, lineParams, vecLimit)
 end
 
 -- Returns a function that on each call returns a new position that fulfills given criteria
--- and is within the given quad
-function geoUtils.createPositionIterator(quad)
+-- and is within the given selection area
+function geoUtils.createPositionIterator(selectionBox)
+
+    -- if (
+    --     not selectionBox.startPos or
+    --     not selectionBox.endPos
+    -- ) then
+    --     return nil
+    -- end
+
+    -- 0:0 = bottom left corner
+    local minX = math.min(selectionBox.startPos.x, selectionBox.endPos.x)
+    local maxX = math.max(selectionBox.startPos.x, selectionBox.endPos.x)
+    local minY = math.min(selectionBox.startPos.y, selectionBox.endPos.y)
+    local maxY = math.max(selectionBox.startPos.y, selectionBox.endPos.y)
+
+    -- each tile has a side of 4 units
+    -- geometric placement makes 8x8 points per tile
+
+    --     North
+    -- -Z  _   _ -X
+    --    |\   /|
+    --      \ /
+    --       X     East
+    --      / \
+    --    |/   \|
+    -- +X        +Z
 
     -- B-----C
     -- |    /.
@@ -169,21 +194,22 @@ function geoUtils.createPositionIterator(quad)
     -- | /   .
     -- A . .(D)
 
-    if (
-        not quad.A or not quad.B or not quad.C or
-        -- TODO: what's this for? is it complete? shouldn't it check coords instead of objects?
-        quad.A == quad.B or quad.B == quad.C or
-        not quad.D
-    ) then
+    -- TODO: consider keeping 90deg angles
+    local A = geoUtils.MapScreenPt(minX, minY)
+    local B = geoUtils.MapScreenPt(minX, maxY)
+    local C = geoUtils.MapScreenPt(maxX, maxY)
+
+    -- TODO: what's this for? is it complete? shouldn't it check coords instead of objects?
+    if A == B or B == C then
         return nil
     end
 
-    local O       = Vector3(quad.B:Get())
-    local limitBC = Vector3(quad.C:Get())
-    local limitBA = quad.A
+    local O       = Vector3(B:Get())
+    local limitBC = Vector3(C:Get())
+    local limitBA = A
 
-    local paramsBA = getLineParams(quad.B, quad.A)
-    local paramsBC = getLineParams(quad.B, quad.C)
+    local paramsBA = getLineParams(B, A)
+    local paramsBC = getLineParams(B, C)
     paramsBA.orientation = tryGetPerpendicular(paramsBC.orientation)
     paramsBC.orientation = tryGetPerpendicular(paramsBA.orientation)
 
