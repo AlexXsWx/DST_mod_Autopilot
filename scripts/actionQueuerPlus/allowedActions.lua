@@ -1,8 +1,9 @@
-local constants = require "actionQueuerPlus/constants"
-local utils     = require "actionQueuerPlus/utils"
+local utils  = require "actionQueuerPlus/utils"
+local logger = require "actionQueuerPlus/logger"
 
-local function isLeft(context, config)  return not context.right end
-local function isRight(context, config) return context.right     end
+local function allow(context, config)        return true              end
+local function allowIfLeft(context, config)  return not context.right end
+local function allowIfRight(context, config) return context.right     end
 
 local function testCherryPick(mode, cherrypickingOrDeselecting)
     if mode == "no" then return true end
@@ -10,19 +11,51 @@ local function testCherryPick(mode, cherrypickingOrDeselecting)
     return false
 end
 
-local special_cases = {
+local autoCollectAfterActions = {
+    [ACTIONS.CHOP] = true,
+    [ACTIONS.MINE] = true,
+    [ACTIONS.HAMMER] = true,
+    [ACTIONS.DIG] = true
+}
 
-    [ACTIONS.HAMMER]     = isRight,
-    [ACTIONS.GIVE]       = isLeft,
-    [ACTIONS.NET]        = isLeft,
-    [ACTIONS.ADDFUEL]    = isLeft,
-    [ACTIONS.ADDWETFUEL] = isLeft,
-    [ACTIONS.COOK]       = isLeft,
-    [ACTIONS.FERTILIZE]  = isLeft,
-    [ACTIONS.MINE]       = isLeft,
-    [ACTIONS.CHOP]       = isLeft,
-    [ACTIONS.DRY]        = isLeft,
-    [ACTIONS.PLANT]      = isLeft,
+local allowedDeployModes = {
+    [DEPLOYMODE.PLANT] = true,
+    [DEPLOYMODE.WALL] = true,
+}
+
+local allowedDeployPrefabs = {
+    ["trap_teeth"] = true,
+    -- TODO: bramble trap?
+}
+
+local isActionAllowedMap = {
+
+    [ACTIONS.TAKEITEM]    = allow,
+    [ACTIONS.REPAIR]      = allow,
+    [ACTIONS.USEITEM]     = allow,
+    [ACTIONS.BAIT]        = allow,
+    [ACTIONS.CHECKTRAP]   = allow,
+    [ACTIONS.RESETMINE]   = allow,
+    [ACTIONS.ACTIVATE]    = allow,
+    [ACTIONS.TURNON]      = allow,
+    [ACTIONS.TURNOFF]     = allow,
+    [ACTIONS.EXTINGUISH]  = allow,
+    [ACTIONS.REPAIR_LEAK] = allow,
+    -- (e.g. heal abigal using glands)
+    [ACTIONS.HEAL]        = allow,
+
+    [ACTIONS.HAMMER] = allowIfRight,
+
+    [ACTIONS.GIVE]       = allowIfLeft,
+    [ACTIONS.NET]        = allowIfLeft,
+    [ACTIONS.ADDFUEL]    = allowIfLeft,
+    [ACTIONS.ADDWETFUEL] = allowIfLeft,
+    [ACTIONS.COOK]       = allowIfLeft,
+    [ACTIONS.FERTILIZE]  = allowIfLeft,
+    [ACTIONS.MINE]       = allowIfLeft,
+    [ACTIONS.CHOP]       = allowIfLeft,
+    [ACTIONS.DRY]        = allowIfLeft,
+    [ACTIONS.PLANT]      = allowIfLeft,
 
     [ACTIONS.DIG] = function(context, config)
         return not (
@@ -38,7 +71,7 @@ local special_cases = {
         return not (
             context.right or
             -- TODO: also when autocollecting
-            -- TODO: move to utils.shouldIgnorePickupTarget?
+            -- TODO: move to shouldIgnorePickupTarget?
             testCherryPick(config.pickFlowersMode, cherrypickingOrDeselecting) and (
                 target:HasTag("flower") or
                 target:HasTag("succulent") or
@@ -78,7 +111,7 @@ local special_cases = {
         return not (
             context.right or
             utils.shouldIgnorePickupTarget(target) or
-            -- TODO: move to utils.shouldIgnorePickupTarget?
+            -- TODO: move to shouldIgnorePickupTarget?
             testCherryPick(config.pickTwigsMode, cherrypickingOrDeselecting) and (
                 target.prefab == "twigs"
             ) or
@@ -101,38 +134,53 @@ local special_cases = {
         )
     end,
 
+    -- e.g. seeds
     [ACTIONS.EAT] = function(context, config)
         return context.cherrypicking or context.deselecting
     end,
 }
 
-----------------------------------------------------------------
+local allowedActions = {}
 
-local function getAction(context, config)
-    local pos = context.target:GetPosition()
-    local actionPicker = context.playerInst.components.playeractionpicker
+function allowedActions.isActionAllowed(action, context, config)
+    local testFn = isActionAllowedMap[act.action]
+    return testFn and testFn(context, config) or false
+end
 
-    local potentialActions
-    if context.right then
-        potentialActions = actionPicker:GetRightClickActions(pos, context.target)
-    else
-        potentialActions = actionPicker:GetLeftClickActions(pos, context.target)
-    end
+function allowedActions.shouldIgnorePickupTarget(entity)
+    return utils.toboolean(
+        entity.components.mine and not entity.components.mine.inactive or
+        entity.components.trap and not entity.components.trap.isset or
+        entity:HasTag("trap")
+    )
+end
 
-    for _, act in ipairs(potentialActions) do
-        if (
-            constants.ALLOWED_ACTIONS[act.action] and (
-                special_cases[act.action] == nil or
-                special_cases[act.action](context, config)
-            )
-        ) then
-            -- Mutation
-            act.isRight = context.right
-            return act
+function allowedActions.canAutoCollectAfter(action)
+    return utils.toboolean(autoCollectAfterActions[action])
+end
+
+function allowedActions.getItemDeployMode(item)
+    if item and item.replica then
+        local inventoryItem = item.replica.inventoryitem
+        if inventoryItem then
+            if inventoryItem.inst.components.deployable then
+                return inventoryItem.inst.components.deployable.mode
+            end
+            if inventoryItem.classified and inventoryItem.classified.deploymode then
+                return inventoryItem.classified.deploymode:value()
+            end
         end
     end
-
+    logger.logError("Unable to get deploy mode")
     return nil
 end
 
-return getAction
+function allowedActions.canDeployItem(item)
+    if not item then return false end
+    return utils.toboolean(
+        allowedDeployPrefabs[item.prefab] or
+        allowedDeployModes[allowedActions.getItemDeployMode(item)]
+    )
+end
+
+return allowedActions

@@ -3,7 +3,7 @@ local utils            = require "actionQueuerPlus/utils"
 local asyncUtils       = require "actionQueuerPlus/asyncUtils"
 local logger           = require "actionQueuerPlus/logger"
 local GeoUtil          = require "actionQueuerPlus/GeoUtil"
-local getAction        = require "actionQueuerPlus/getAction"
+local allowedActions   = require "actionQueuerPlus/allowedActions"
 local mouseAPI         = require "actionQueuerPlus/mouseAPI"
 local MouseManager     = require "actionQueuerPlus/MouseManager"
 local SelectionManager = require "actionQueuerPlus/SelectionManager"
@@ -15,6 +15,8 @@ local ActionQueuer_waitAction
 local ActionQueuer_autoCollect
 local ActionQueuer_applyToDeploy
 local ActionQueuer_applyToSelection
+local getAction
+local canAutoCollectEntity
 -------------------------
 
 local ActionQueuer = Class(function(self, playerInst)
@@ -151,7 +153,7 @@ ActionQueuer_initializeMouseManagers = function(self)
             -- TODO: check why originally it was checking for not cherry picking
             optSelectionBoxProjected and
             right and
-            utils.canDeployItem(self._playerInst.replica.inventory:GetActiveItem())
+            allowedActions.canDeployItem(self._playerInst.replica.inventory:GetActiveItem())
         ) then
             ActionQueuer_applyToDeploy(self, optSelectionBoxProjected)
         else
@@ -231,7 +233,7 @@ ActionQueuer_applyToDeploy = function(self, selectionBoxProjected)
     local initiallyActiveItem = self._playerInst.replica.inventory:GetActiveItem()
     local activeItemName = initiallyActiveItem.prefab
 
-    if not utils.canDeployItem(initiallyActiveItem) then return end
+    if not allowedActions.canDeployItem(initiallyActiveItem) then return end
 
     self._activeThread = self._startThread(function()
 
@@ -240,7 +242,7 @@ ActionQueuer_applyToDeploy = function(self, selectionBoxProjected)
 
         playerInst:ClearBufferedAction()
 
-        local deployMode = utils.getItemDeployMode(initiallyActiveItem)
+        local deployMode = allowedActions.getItemDeployMode(initiallyActiveItem)
         local function canDeployItemAtPosition(item, position)
             return (
                 item.replica.inventoryitem:CanDeploy(position) and (
@@ -363,7 +365,7 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
                 if (
                     self._config.autoCollect and
                     targetPosition and
-                    constants.AUTO_COLLECT_ACTIONS[action.action]
+                    allowedActions.canAutoCollectAfter(action.action)
                 ) then
                     ActionQueuer_autoCollect(self, targetPosition)
                 end
@@ -388,18 +390,8 @@ ActionQueuer_autoCollect = function(self, position)
     )
     local right = false
     for _, entity in ipairs(entitiesAround) do
-        if utils.testEntity(entity) then
-            local actionPicker = self._playerInst.components.playeractionpicker
-            local actions = actionPicker:GetSceneActions(entity, right)
-            if (
-                actions[1] and (
-                    actions[1].action == ACTIONS.PICK or
-                    actions[1].action == ACTIONS.PICKUP
-                ) and
-                not utils.shouldIgnorePickupTarget(entity)
-            ) then
-                self._selectionManager:SelectEntity(entity, right)
-            end
+        if canAutoCollectEntity(self._playerInst, entity, right) then
+            self._selectionManager:SelectEntity(entity, right)
         end
     end
 end
@@ -435,6 +427,47 @@ ActionQueuer_waitAction = function(self, optWaitWork, optCancelEarly)
             not playerInst:HasTag("moving") and not playerController:IsDoingOrWorking()
         )
     end
+end
+
+--
+
+getAction = function(context, config)
+    local pos = context.target:GetPosition()
+    local actionPicker = context.playerInst.components.playeractionpicker
+
+    local potentialActions
+    if context.right then
+        potentialActions = actionPicker:GetRightClickActions(pos, context.target)
+    else
+        potentialActions = actionPicker:GetLeftClickActions(pos, context.target)
+    end
+
+    for _, act in ipairs(potentialActions) do
+        if allowedActions.isActionAllowed(act.action, context, config) then
+            -- FIXME: Mutation
+            act.isRight = context.right
+            return act
+        end
+    end
+
+    return nil
+end
+
+canAutoCollectEntity = function(playerInst, entity, right)
+    if utils.testEntity(entity) then
+        local actionPicker = playerInst.components.playeractionpicker
+        local actions = actionPicker:GetSceneActions(entity, right)
+        if (
+            actions[1] and (
+                actions[1].action == ACTIONS.PICK or
+                actions[1].action == ACTIONS.PICKUP
+            ) and
+            not allowedActions.shouldIgnorePickupTarget(entity)
+        ) then
+            return true
+        end
+    end
+    return false
 end
 
 --

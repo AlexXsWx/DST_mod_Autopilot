@@ -55,40 +55,6 @@ function utils.testEntity(entity)
     )
 end
 
--- TODO: move to some more appropriate place, maybe getAction / actionsHelper?
-
-function utils.shouldIgnorePickupTarget(entity)
-    return utils.toboolean(
-        entity.components.mine and not entity.components.mine.inactive or
-        entity.components.trap and not entity.components.trap.isset or
-        entity:HasTag("trap")
-    )
-end
-
-function utils.getItemDeployMode(item)
-    if item and item.replica then
-        local inventoryItem = item.replica.inventoryitem
-        if inventoryItem then
-            if inventoryItem.inst.components.deployable then
-                return inventoryItem.inst.components.deployable.mode
-            end
-            if inventoryItem.classified and inventoryItem.classified.deploymode then
-                return inventoryItem.classified.deploymode:value()
-            end
-        end
-    end
-    logger.logError("Unable to get deploy mode")
-    return nil
-end
-
-function utils.canDeployItem(item)
-    if not item then return false end
-    return utils.toboolean(
-        constants.ALLOWED_DEPLOY_PREFABS[item.prefab] or
-        constants.ALLOWED_DEPLOY_MODES[utils.getItemDeployMode(item)]
-    )
-end
-
 --
 
 function utils.getItemFromInventory(inventory, prefabName)
