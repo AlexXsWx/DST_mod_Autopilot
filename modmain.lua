@@ -43,6 +43,8 @@ end
 
 local function updateConfig()
 
+    config.keyToOpenOptions = keyMap[GetModConfigData("keyToOpenOptions")] or nil
+
     local keyToQueueActions    = assert(keyMap[GetModConfigData("keyToQueueActions")])
     local altKeyToQueueActions = keyMap[GetModConfigData("altKeyToQueueActions")] or nil
     local optKeyToDeselect     = keyMap[GetModConfigData("keyToDeselect")] or nil
@@ -184,24 +186,49 @@ updateInputHandler = function(playerInst, config)
         end
     )
 
+    -- open menu binding
+
     local scrollViewOffset = 0
-    local onUpdate = function(newScrollViewOffset, optHadEffect)
+    local screen = nil
+    local openMenuHandler = nil
+
+    -- forward declaration --
+    local tryBindOpenMenu
+    local onUpdate
+    -------------------------
+
+    tryBindOpenMenu = function()
+        if config.keyToOpenOptions == nil then return end
+        openMenuHandler = TheInput.onkeydown:AddEventHandler(
+            config.keyToOpenOptions,
+            function()
+                if screen then
+                    screen:Close()
+                elseif isDefaultScreen() then
+                    screen = OptionsScreen(modname, scrollViewOffset, onUpdate)
+                    GLOBAL.TheFrontEnd:PushScreen(screen)
+                end
+            end
+        )
+    end
+
+    onUpdate = function(newScrollViewOffset, optHadEffect)
         scrollViewOffset = newScrollViewOffset
         if optHadEffect then
             updateConfig()
-            reconfigureComponent(playerInst.components.actionqueuerplus)            
-        end
-    end
-    TheInput:AddKeyDownHandler(
-        -- FIXME: allow to configure
-        GLOBAL.KEY_X,
-        function()
-            if isDefaultScreen() then
-                local screen = OptionsScreen(modname, scrollViewOffset, onUpdate)
-                GLOBAL.TheFrontEnd:PushScreen(screen)
+            reconfigureComponent(playerInst.components.actionqueuerplus)
+
+            -- Re-add handler in case button changed
+            if openMenuHandler then
+                TheInput.onkeydown:RemoveHandler(openMenuHandler)
+                openMenuHandler = nil
             end
+            tryBindOpenMenu()
         end
-    )
+        screen = nil
+    end
+
+    tryBindOpenMenu()
 end
 
 enableAutoRepeatCraft = function(playerInst, config)

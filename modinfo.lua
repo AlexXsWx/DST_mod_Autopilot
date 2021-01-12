@@ -53,6 +53,20 @@ configuration_options = {
         default = "no"
     },
     {
+        name = "keyToOpenOptions",
+        label = "Key to toggle options screen",
+        options = 
+        {
+            { description = "None",  data = "none" },
+            { description = "Z",     data = "Z"    },
+            { description = "X",     data = "X"    },
+            { description = "C",     data = "C"    },
+            { description = "V",     data = "V"    },
+            { description = "B",     data = "B"    },
+        },
+        default = "C",
+    },
+    {
         name = "keyToQueueActions",
         label = "Key to queue actions",
         options = 

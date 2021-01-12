@@ -8,7 +8,6 @@ local createScrollableWindow = require "actionQueuerPlus/ui/createScrollableWind
 
 -- forward declaration --
 local OptionsScreen_Apply
-local OptionsScreen_Close
 local getModOptions
 local collectSettings
 local createOptionsScrollList
@@ -34,7 +33,7 @@ local OptionsScreen = Class(Screen, function(self, modname, scrollViewOffset, on
         parent = self,
         title = "Action Queuer Plus Options",
         onApply  = function() OptionsScreen_Apply(self) end,
-        onCancel = function() OptionsScreen_Close(self) end,
+        onCancel = function() self:Close() end,
     })
 
     self._optionsScrollList = createOptionsScrollList(
@@ -55,12 +54,12 @@ function OptionsScreen:OnControl(control, down)
         control == CONTROL_CANCEL or
         control == CONTROL_MENU_MISC_3
     ) then
-        OptionsScreen_Close(self)
+        self:Close()
         return true
     end
 end
 
-OptionsScreen_Close = function(self, optHadEffect)
+function OptionsScreen:Close(optHadEffect)
     self._onClose(
         self._optionsScrollList.view_offset,
         optHadEffect or false
@@ -70,7 +69,7 @@ end
 
 OptionsScreen_Apply = function(self)
     if not self._dirty then
-        OptionsScreen_Close(self)
+        self:Close()
         return    
     end
 
@@ -78,7 +77,7 @@ OptionsScreen_Apply = function(self)
     KnownModIndex:SaveConfigurationOptions(
         function() 
             self._dirty = false
-            OptionsScreen_Close(self, true)
+            self:Close(true)
         end,
         self._modname,
         settings,
