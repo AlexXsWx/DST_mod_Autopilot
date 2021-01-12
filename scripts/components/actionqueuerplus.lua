@@ -440,12 +440,21 @@ getAction = function(context, config)
     local pos = context.target:GetPosition()
     local actionPicker = context.playerInst.components.playeractionpicker
 
+    -- Fix for alt+tab leaving alt pressed for the game which messes up GetLeftClickActions
+    local removeControlCheckOverride = utils.override(
+        context.playerInst.components.playercontroller,
+        "IsControlPressed",
+        function() return false end
+    )
+
     local potentialActions
     if context.right then
         potentialActions = actionPicker:GetRightClickActions(pos, context.target)
     else
         potentialActions = actionPicker:GetLeftClickActions(pos, context.target)
     end
+
+    removeControlCheckOverride()
 
     for _, act in ipairs(potentialActions) do
         if allowedActions.isActionAllowed(act, context, config) then

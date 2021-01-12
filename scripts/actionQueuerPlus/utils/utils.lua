@@ -16,6 +16,9 @@ function utils.override(obj, method, fn)
     obj[method] = function(self, ...)
         return fn(self, originalFn, ...)
     end
+    return function()
+        obj[method] = originalFn
+    end
 end
 
 function utils.overrideToCancelIf(obj, method, shouldCancelFn)
@@ -24,6 +27,9 @@ function utils.overrideToCancelIf(obj, method, shouldCancelFn)
         if not shouldCancelFn(self, ...) then
             return originalFn(self, ...)
         end
+    end
+    return function()
+        obj[method] = originalFn
     end
 end
 
