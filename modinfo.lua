@@ -28,6 +28,7 @@ description = (
 -- * Separate selection box actions and pick actions
 -- * only pick what's already in inventory
 -- * Edge case: when using Shift, item shift on player should drop item but does nothing
+-- * TODO: support cherry pick heaving
 
 api_version = 6 -- not sure about this one since DS is not supported
 api_version_dst = 10
