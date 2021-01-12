@@ -15,7 +15,7 @@ description = (
 )
 
 -- TODO:
--- * Support new farming? (use hoe, talk to plants)
+-- * Support new farming? (use hoe)
 -- * Zig-zag planting trees? hex placing?
 -- * Auto pick up seeds / scare birds / wait for butterflies / wait for shadow creatures?
 -- * World-aligned coords?
@@ -318,6 +318,21 @@ configuration_options = {
         hover = (
             "Should pick up tree blossom (both perishable and worldgen) " ..
             "when selecting area or clicking directly?"
+        ),
+    },
+    {
+        name = "digUpSeeds",
+        label = "Dig up planted seeds",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+            { description = "yes",              data = "yes"            },
+        },
+        default = "no",
+        hover = (
+            "Should dig up planted seeds " ..
+            "when seleting area or clicking directly?"
         ),
     },
     {

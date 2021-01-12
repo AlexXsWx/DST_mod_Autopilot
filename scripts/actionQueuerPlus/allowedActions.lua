@@ -48,8 +48,9 @@ local isActionAllowedMap = {
     -- (e.g. heal abigal using glands)
     [ACTIONS.HEAL]        = allow,
 
+    [ACTIONS.PLANTSOIL] = allow,
     -- talking to plants
-    [ACTIONS.INTERACT_WITH] = allow,
+    [ACTIONS.INTERACT_WITH] = allowIfRight,
     [ACTIONS.ASSESSPLANTHAPPINESS] = function(context, config)
         return not context.right and context.cherrypicking
     end,
@@ -68,11 +69,21 @@ local isActionAllowedMap = {
     [ACTIONS.PLANT]      = allowIfLeft,
 
     [ACTIONS.DIG] = function(context, config)
-        return not (
+        local cherrypickingOrDeselecting = context.cherrypicking or context.deselecting
+        if (
+            context.target:HasTag("stump") and
             not config.digStumpsAsWerebeaver and
-            context.playerInst:HasTag("beaver") and
-            context.target:HasTag("stump")
-        )
+            context.playerInst:HasTag("beaver")
+        ) then
+            return false
+        end
+        if (
+            context.target:HasTag("farm_plant") and
+            testCherryPick(config.digUpSeeds, cherrypickingOrDeselecting)
+        ) then
+            return false
+        end
+        return true
     end,
 
     [ACTIONS.PICK] = function(context, config)
