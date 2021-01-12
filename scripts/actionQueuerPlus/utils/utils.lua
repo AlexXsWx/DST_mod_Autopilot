@@ -180,6 +180,28 @@ function utils.doDeployAction(
     doAction(playerController, bufferedAction, true, actionPosition, nil, true)
 end
 
+function utils.doTillAction(
+    playerInst,
+    playerController,
+    actionPositionToCopy,
+    itemToUse
+)
+    local actionPosition = Vector3(actionPositionToCopy.x, 0, actionPositionToCopy.z)
+
+    local bufferedAction = BufferedAction(
+        playerInst, nil, ACTIONS.TILL, itemToUse, actionPosition
+    )
+
+    -- if (
+    --     playerController.deployplacer ~= nil and
+    --     bufferedAction.action == ACTIONS.DEPLOY
+    -- ) then
+    --     bufferedAction.rotation = playerController.deployplacer.Transform:GetRotation()
+    -- end
+
+    doAction(playerController, bufferedAction, true, actionPosition, nil, true)
+end
+
 -- TODO: move to a better place
 
 local function createPreventRepeatAction()

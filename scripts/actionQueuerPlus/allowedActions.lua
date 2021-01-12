@@ -55,6 +55,8 @@ local isActionAllowedMap = {
         return not context.right and context.cherrypicking
     end,
 
+    [ACTIONS.TILL] = allow,
+
     [ACTIONS.HAMMER] = allowIfRight,
 
     [ACTIONS.GIVE]       = allowIfLeft,

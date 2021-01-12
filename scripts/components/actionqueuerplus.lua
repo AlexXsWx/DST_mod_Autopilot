@@ -227,54 +227,115 @@ ActionQueuer_applyToDeploy = function(self, selectionBoxProjected)
     end
 
     local initiallyActiveItem = self._playerInst.replica.inventory:GetActiveItem()
-    local activeItemName = initiallyActiveItem.prefab
 
-    if not allowedActions.canDeployItem(initiallyActiveItem) then return end
+    if allowedActions.canDeployItem(initiallyActiveItem) then
+        local activeItemName = initiallyActiveItem.prefab
+        self._activeThread = self._startThread(function()
 
-    self._activeThread = self._startThread(function()
+            local playerInst = self._playerInst
+            local playerController = playerInst.components.playercontroller
 
-        local playerInst = self._playerInst
-        local playerController = playerInst.components.playercontroller
+            playerInst:ClearBufferedAction()
 
-        playerInst:ClearBufferedAction()
-
-        local deployMode = allowedActions.getItemDeployMode(initiallyActiveItem)
-        local function canDeployItemAtPosition(item, position)
-            return item.replica.inventoryitem:CanDeploy(position, nil, playerInst) and (
-                deployMode ~= DEPLOYMODE.WALL or
-                utils.canPlayerDeployAWallAt(playerInst, position)
-            )
-        end
-
-        self._interrupted = false
-
-        while true do
-            local inventory = playerInst.replica.inventory
-            local itemToDeploy = (
-                inventory:GetActiveItem() or
-                utils.getItemFromInventory(inventory, activeItemName)
-            )
-
-            if self._interrupted or not isItemValid(itemToDeploy) then
-                self:Interrupt()
-                return
+            local deployMode = allowedActions.getItemDeployMode(initiallyActiveItem)
+            local function canDeployItemAtPosition(item, position)
+                return item.replica.inventoryitem:CanDeploy(position, nil, playerInst) and (
+                    deployMode ~= DEPLOYMODE.WALL or
+                    utils.canPlayerDeployAWallAt(playerInst, position)
+                )
             end
 
-            local deployPosition = getNextDeployPosition(
-                function(position) return canDeployItemAtPosition(itemToDeploy, position) end
-            )
+            self._interrupted = false
 
-            -- TODO: is there any actual need to check for _interrupted / isItemValid 2nd time?
-            if deployPosition == nil or self._interrupted or not isItemValid(itemToDeploy) then
-                self:Interrupt()
-                return
+            while true do
+                local inventory = playerInst.replica.inventory
+                local itemToDeploy = (
+                    inventory:GetActiveItem() or
+                    utils.getItemFromInventory(inventory, activeItemName)
+                )
+
+                if self._interrupted or not isItemValid(itemToDeploy) then
+                    self:Interrupt()
+                    return
+                end
+
+                local deployPosition = getNextDeployPosition(
+                    function(position) return canDeployItemAtPosition(itemToDeploy, position) end
+                )
+
+                -- TODO: is there any actual need to check for _interrupted / isItemValid 2nd time?
+                if deployPosition == nil or self._interrupted or not isItemValid(itemToDeploy) then
+                    self:Interrupt()
+                    return
+                end
+
+                utils.doDeployAction(playerInst, playerController, deployPosition, itemToDeploy)
+
+                ActionQueuer_waitAction(self)
+            end
+        end)
+        return
+    end
+
+    initiallyActiveItem = (
+        initiallyActiveItem or
+        playerInst.replica.inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
+    )
+
+    if (
+        initiallyActiveItem and (
+            initiallyActiveItem.prefab == "farm_hoe" or
+            initiallyActiveItem.prefab == "golden_farm_hoe"
+        )
+    ) then
+        logger.logDebug("can till")
+        self._activeThread = self._startThread(function()
+
+            local playerInst = self._playerInst
+            local playerController = playerInst.components.playercontroller
+
+            playerInst:ClearBufferedAction()
+
+            -- local deployMode = allowedActions.getItemDeployMode(initiallyActiveItem)
+            local function canTillAtPosition(item, position)
+                return true
+                -- return item.replica.inventoryitem:CanDeploy(position, nil, playerInst) and (
+                --     deployMode ~= DEPLOYMODE.WALL or
+                --     utils.canPlayerDeployAWallAt(playerInst, position)
+                -- )
             end
 
-            utils.doDeployAction(playerInst, playerController, deployPosition, itemToDeploy)
+            self._interrupted = false
 
-            ActionQueuer_waitAction(self)
-        end
-    end)
+            while true do
+                local inventory = playerInst.replica.inventory
+                local itemToUse = (
+                    inventory:GetActiveItem() or
+                    utils.getItemFromInventory(inventory, activeItemName) or
+                    inventory:GetEquippedItem(EQUIPSLOTS.HANDS)
+                )
+
+                if self._interrupted or not isItemValid(itemToUse) then
+                    self:Interrupt()
+                    return
+                end
+
+                local deployPosition = getNextDeployPosition(
+                    function(position) return canTillAtPosition(itemToUse, position) end
+                )
+
+                -- TODO: is there any actual need to check for _interrupted / isItemValid 2nd time?
+                if deployPosition == nil or self._interrupted or not isItemValid(itemToUse) then
+                    self:Interrupt()
+                    return
+                end
+
+                utils.doTillAction(playerInst, playerController, deployPosition, itemToUse)
+
+                ActionQueuer_waitAction(self)
+            end
+        end)
+    end
 end
 
 ActionQueuer_applyToSelection = function(self, cherrypicking)
