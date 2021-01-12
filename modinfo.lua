@@ -27,6 +27,8 @@ description = (
 -- * Button to auto pickup anything around?
 -- * Don't interrupt current action when queing first one with shift+click
 -- * Separate selection box actions and pick actions
+-- * only pick what's already in inventory
+-- * Edge case: when using Shift, item shift on player should drop item but does nothing
 
 api_version = 6 -- not sure about this one since DS is not supported
 api_version_dst = 10
