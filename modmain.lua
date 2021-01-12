@@ -4,7 +4,8 @@ local utils            = require "actionQueuerPlus/utils/utils"
 local asyncUtils       = require "actionQueuerPlus/utils/asyncUtils"
 local highlightHelper  = require "actionQueuerPlus/highlightHelper"
 
-local OptionsScreen = require("screens/actionqueuerplusoptionsscreen")
+-- local OptionsScreen = require("screens/actionqueuerplusoptionsscreen")
+local OptionsScreen = require("screens/redux/modconfigurationscreen")
 
 Assets = {
     Asset("ATLAS", "images/selection_square.xml"),
@@ -202,18 +203,34 @@ updateInputHandler = function(playerInst)
         openMenuHandler = TheInput.onkeydown:AddEventHandler(
             config.keyToOpenOptions,
             function()
-                if screen then
-                    screen:Close()
+                if screen and TheFrontEnd:GetActiveScreen() == screen then
+                    -- screen:Close()
+                    screen:MakeDirty(false)
+                    TheFrontEnd:PopScreen()
                 elseif isDefaultScreen() then
-                    screen = OptionsScreen(modname, scrollViewOffset, onUpdate)
-                    GLOBAL.TheFrontEnd:PushScreen(screen)
+                    -- screen = OptionsScreen(modname, scrollViewOffset, onUpdate)
+                    screen = OptionsScreen(modname, true)
+
+                    utils.override(screen, "Apply", function(self, originalFn, ...)
+                        local dirty = self:IsDirty()
+                        local result = originalFn(self, ...)
+                        onUpdate(0, dirty)
+                        return result
+                    end)
+                    utils.override(screen, "OnDestroy", function(self, originalFn, ...)
+                        scrollViewOffset = self.options_scroll_list.current_scroll_pos
+                        screen = nil
+                        return originalFn(self, ...)
+                    end)
+                    screen.options_scroll_list:ScrollToDataIndex(scrollViewOffset)
+                    TheFrontEnd:PushScreen(screen)
                 end
             end
         )
     end
 
     onUpdate = function(newScrollViewOffset, optHadEffect)
-        scrollViewOffset = newScrollViewOffset
+        -- scrollViewOffset = newScrollViewOffset
         if optHadEffect then
             updateConfig()
             reconfigureComponent(playerInst.components.actionqueuerplus)
