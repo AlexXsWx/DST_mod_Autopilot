@@ -260,12 +260,23 @@ ActionQueuer_applyToDeploy = function(self, selectionBoxProjected)
                 return
             end
 
-            local deployPosition = getNextDeployPosition(
-                function(position) return canDeployItemAtPosition(itemToDeploy, position) end
-            )
+            local deployPosition
+
+            while true do
+                local position, acceptPosition = getNextDeployPosition()
+                if position == nil then
+                    self:Interrupt()
+                    return
+                end
+                if canDeployItemAtPosition(itemToDeploy, position) then
+                    deployPosition = position
+                    acceptPosition()
+                    break
+                end
+            end
 
             -- TODO: is there any actual need to check for _interrupted / isItemValid 2nd time?
-            if deployPosition == nil or self._interrupted or not isItemValid(itemToDeploy) then
+            if self._interrupted or not isItemValid(itemToDeploy) then
                 self:Interrupt()
                 return
             end

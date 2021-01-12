@@ -190,28 +190,11 @@ function geoUtils.createPositionIterator(quad)
     local positionI = Vector3(O:Get())
     local step = (paramsBA.orientation == ORIENTATION.OTHER) and 0.5 or 0.25
 
+    local first = true
     local moveAlongBC = true
 
-    local function getNextPosition(isPositionSuitable)
-        if moveAlongBC then
-            while not isPositionSuitable(positionI) do
-                positionI = incrementPosition(positionI, paramsBC, step)
-                if isOutOfRange(positionI, paramsBC, limitBC) then
-                    moveAlongBC = false
-                    positionI.x = O.x
-                    positionI.z = O.z
-                    break
-                end
-            end
-        end
-
+    local function acceptPosition()
         if not moveAlongBC then
-            repeat
-                positionI = incrementPosition(positionI, paramsBA, step)
-                if isOutOfRange(positionI, paramsBA, limitBA) then
-                    return nil
-                end
-            until isPositionSuitable(positionI)
             limitBC.x = limitBC.x - (O.x - positionI.x)
             limitBC.z = limitBC.z - (O.z - positionI.z)
             O.x = positionI.x
@@ -219,8 +202,32 @@ function geoUtils.createPositionIterator(quad)
             paramsBC.b = positionI.z - paramsBC.k * positionI.x
             moveAlongBC = true
         end
+    end
 
-        return positionI
+    local function getNextPosition()
+
+        if first then
+            first = false
+            return positionI, acceptPosition
+        end
+
+        if moveAlongBC then
+            positionI = incrementPosition(positionI, paramsBC, step)
+            if isOutOfRange(positionI, paramsBC, limitBC) then
+                moveAlongBC = false
+                positionI.x = O.x
+                positionI.z = O.z
+            end
+        end
+
+        if not moveAlongBC then
+            positionI = incrementPosition(positionI, paramsBA, step)
+            if isOutOfRange(positionI, paramsBA, limitBA) then
+                return nil
+            end
+        end
+
+        return positionI, acceptPosition
     end
 
     return getNextPosition
