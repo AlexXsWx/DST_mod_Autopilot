@@ -4,6 +4,8 @@ end
 
 local logger = {}
 
+local debugAllowed = false
+
 function logger.logError(msg)
     log("Error: " .. msg)
 end
@@ -13,7 +15,13 @@ function logger.logWarning(msg)
 end
 
 function logger.logDebug(msg)
-    log(msg)
+    if debugAllowed then
+        log(msg)
+    end
+end
+
+function logger.setDebugEnabled(enabled)
+    debugAllowed = enabled
 end
 
 return logger

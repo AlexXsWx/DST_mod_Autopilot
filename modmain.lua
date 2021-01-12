@@ -25,6 +25,10 @@ local enableAutoRepeatCraft
 local config = {}
 
 local function main()
+    logger.setDebugEnabled(
+        GetModConfigData("logDebugEnabled") == "yes"
+    )
+
     logger.logDebug("main")
     AddPlayerPostInit(onPlayerPostInit)
 end
@@ -41,6 +45,9 @@ onPlayerPostInit = function(playerInst)
 end
 
 local function updateConfig()
+    logger.setDebugEnabled(
+        GetModConfigData("logDebugEnabled") == "yes"
+    )
 
     config.keyToOpenOptions = keyMap[GetModConfigData("keyToOpenOptions")] or nil
 

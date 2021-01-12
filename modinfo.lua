@@ -332,6 +332,17 @@ configuration_options = {
         default = "yes",
         hover = "Should werebeaver spend time on digging up tree stumps?",
     },
+    {
+        name = "logDebugEnabled",
+        label = "Debug mode",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "no",
+        hover = "Print debug information in console",
+    },
 }
 
 local icon_stem = "modicon"
