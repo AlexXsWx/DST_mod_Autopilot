@@ -1,11 +1,10 @@
+local ModConfigutationScreen = require("screens/redux/modconfigurationscreen")
+
 local keyMap           = require "actionQueuerPlus/input/keyMap"
 local logger           = require "actionQueuerPlus/utils/logger"
 local utils            = require "actionQueuerPlus/utils/utils"
 local asyncUtils       = require "actionQueuerPlus/utils/asyncUtils"
 local highlightHelper  = require "actionQueuerPlus/highlightHelper"
-
--- local OptionsScreen = require("screens/actionqueuerplusoptionsscreen")
-local OptionsScreen = require("screens/redux/modconfigurationscreen")
 
 Assets = {
     Asset("ATLAS", "images/selection_square.xml"),
@@ -19,6 +18,7 @@ local assert = GLOBAL.assert
 local onPlayerPostInit
 local initActionQueuerPlus
 local updateInputHandler
+local bindOpenMenuButton
 local enableAutoRepeatCraft
 -------------------------
 
@@ -116,14 +116,19 @@ initActionQueuerPlus = function(playerInst)
 
     updateConfig()
 
-    if not playerInst.components.actionqueuerplus then
-        playerInst:AddComponent("actionqueuerplus")
-        reconfigureComponent(playerInst.components.actionqueuerplus)
-        updateInputHandler(playerInst)
-    else
+    if playerInst.components.actionqueuerplus then
         logger.logWarning("actionqueuerplus component already exists")
+        return
     end
 
+    playerInst:AddComponent("actionqueuerplus")
+    reconfigureComponent(playerInst.components.actionqueuerplus)
+
+    updateInputHandler(playerInst)
+    bindOpenMenuButton(function()
+        updateConfig()
+        reconfigureComponent(playerInst.components.actionqueuerplus)
+    end)
     enableAutoRepeatCraft(playerInst)
 end
 
@@ -142,7 +147,6 @@ end
 --
 
 updateInputHandler = function(playerInst)
-    logger.logDebug("updateInputHandler")
     utils.overrideToCancelIf(
         playerInst.components.playercontroller,
         "OnControl",
@@ -184,70 +188,95 @@ updateInputHandler = function(playerInst)
             end
         end
     )
+end
 
-    -- open menu binding
-
-    local scrollViewOffset = 0
-    local screen = nil
-    local openMenuHandler = nil
+bindOpenMenuButton = function(onConfigChanged)
+    local keyHandler = nil
 
     -- forward declaration --
-    local tryBindOpenMenu
-    local onUpdate
+    local tryUnbindOpenMenuButton
+    local tryBindOpenMenuButton
+    local onOpenMenuButton
+    local openModOptionsScreen
+    local dismissModOptionsScreen
     -------------------------
 
-    tryBindOpenMenu = function()
-        if config.keyToOpenOptions == nil then return end
-        openMenuHandler = TheInput.onkeydown:AddEventHandler(
-            config.keyToOpenOptions,
-            function()
-                if screen and TheFrontEnd:GetActiveScreen() == screen then
-                    -- screen:Close()
-                    screen:MakeDirty(false)
-                    TheFrontEnd:PopScreen()
-                elseif isDefaultScreen() then
-                    -- screen = OptionsScreen(modname, scrollViewOffset, onUpdate)
-                    screen = OptionsScreen(modname, true)
-
-                    utils.override(screen, "Apply", function(self, originalFn, ...)
-                        local dirty = self:IsDirty()
-                        local result = originalFn(self, ...)
-                        onUpdate(0, dirty)
-                        return result
-                    end)
-                    utils.override(screen, "OnDestroy", function(self, originalFn, ...)
-                        scrollViewOffset = self.options_scroll_list.current_scroll_pos
-                        screen = nil
-                        return originalFn(self, ...)
-                    end)
-                    screen.options_scroll_list:ScrollToDataIndex(scrollViewOffset)
-                    TheFrontEnd:PushScreen(screen)
-                end
-            end
-        )
-    end
-
-    onUpdate = function(newScrollViewOffset, optHadEffect)
-        -- scrollViewOffset = newScrollViewOffset
-        if optHadEffect then
-            updateConfig()
-            reconfigureComponent(playerInst.components.actionqueuerplus)
-
-            -- Re-add handler in case button changed
-            if openMenuHandler then
-                TheInput.onkeydown:RemoveHandler(openMenuHandler)
-                openMenuHandler = nil
-            end
-            tryBindOpenMenu()
+    tryUnbindOpenMenuButton = function()
+        if keyHandler then
+            TheInput.onkeydown:RemoveHandler(keyHandler)
+            keyHandler = nil
         end
-        screen = nil
     end
 
-    tryBindOpenMenu()
+    tryBindOpenMenuButton = function()
+        if config.keyToOpenOptions ~= nil then
+            keyHandler = TheInput.onkeydown:AddEventHandler(
+                config.keyToOpenOptions,
+                onOpenMenuButton
+            )
+        end
+    end
+
+    local scrollViewOffset = 0
+    local activeModConfigurationScreen = nil
+    onOpenMenuButton = function()
+        if (
+            activeModConfigurationScreen and
+            TheFrontEnd:GetActiveScreen() == activeModConfigurationScreen
+        ) then
+            dismissModOptionsScreen(activeModConfigurationScreen)
+        elseif isDefaultScreen() then
+            activeModConfigurationScreen = openModOptionsScreen({
+                scrollViewOffset = scrollViewOffset,
+                onConfigChanged = function()
+                    onConfigChanged()
+                    -- Re-add handler in case button changed
+                    tryUnbindOpenMenuButton()
+                    tryBindOpenMenuButton()
+                end,
+                onDestroy = function()
+                    scrollViewOffset = (
+                        activeModConfigurationScreen.options_scroll_list.current_scroll_pos
+                    )
+                    activeModConfigurationScreen = nil
+                end,
+            })
+        end
+    end
+
+    openModOptionsScreen = function(params)
+        local screen = ModConfigutationScreen(modname, true)
+
+        screen.options_scroll_list:ScrollToDataIndex(params.scrollViewOffset)
+
+        utils.override(screen, "Apply", function(self, originalFn, ...)
+            local willApplyChanges = self:IsDirty()
+            local result = originalFn(self, ...)
+            if willApplyChanges then
+                params.onConfigChanged()
+            end
+            return result
+        end)
+
+        utils.override(screen, "OnDestroy", function(self, originalFn, ...)
+            params.onDestroy()
+            return originalFn(self, ...)
+        end)
+
+        TheFrontEnd:PushScreen(screen)
+
+        return screen
+    end
+
+    dismissModOptionsScreen = function(screen)
+        screen:MakeDirty(false)
+        TheFrontEnd:PopScreen()
+    end
+
+    tryBindOpenMenuButton()
 end
 
 enableAutoRepeatCraft = function(playerInst)
-    logger.logDebug("enableAutoRepeatCraft")
     utils.overrideToCancelIf(
         playerInst.replica.builder,
         "MakeRecipeFromMenu",
