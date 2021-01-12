@@ -43,16 +43,6 @@ client_only_mod = true
 
 configuration_options = {
     {
-        name = "autoCollect",
-        label = "Auto collect",
-        options = 
-        {
-            { description = "no",  data = "no"  },
-            { description = "yes", data = "yes" },
-        },
-        default = "no"
-    },
-    {
         name = "keyToOpenOptions",
         label = "Key to toggle options screen",
         options = 
@@ -65,6 +55,24 @@ configuration_options = {
             { description = "B",     data = "B"    },
         },
         default = "C",
+        hover = (
+            "Allows to change all these options mid-game.\n" .. 
+            "Press again to close options screen without applying changes"
+        ),
+    },
+    {
+        name = "autoCollect",
+        label = "Auto collect",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "no",
+        hover = (
+            "Should character pick up everything around itself " ..
+            "after chopping, digging, mining and hammering?"
+        ),
     },
     {
         name = "keyToQueueActions",
@@ -79,7 +87,11 @@ configuration_options = {
             { description = "V",     data = "V"     },
             { description = "B",     data = "B"     },
         },
-        default = "Shift"
+        default = "Shift",
+        hover = (
+            "Hold this button while clicking or selecting area with left or right mouse button " ..
+            "to queue actions"
+        ),
     },
     {
         name = "altKeyToQueueActions",
@@ -95,7 +107,11 @@ configuration_options = {
             { description = "V",     data = "V"     },
             { description = "B",     data = "B"     },
         },
-        default = "Z"
+        default = "Z",
+        hover = (
+            "Hold this button while clicking or selecting area with left or right mouse button " ..
+            "to queue actions"
+        ),
     },
     {
         name = "keyToDeselect",
@@ -112,7 +128,11 @@ configuration_options = {
             { description = "V",     data = "V"    },
             { description = "B",     data = "B"    },
         },
-        default = "X"
+        default = "X",
+        hover = (
+            "Hold this button while clicking or selecting area with left or right mouse button " ..
+            "to cancel all or some of previously queued actions"
+        ),
     },
     {
         name = "keyToInterrupt",
@@ -123,7 +143,8 @@ configuration_options = {
             { description = "ESC",   data = "ESC"  },
             { description = "Ctrl",  data = "Ctrl" },
         },
-        default = "ESC"
+        default = "ESC",
+        hover = "Press this button to cancel queued actions",
     },
     {
         name = "altKeyToInterrupt",
@@ -134,7 +155,8 @@ configuration_options = {
             { description = "ESC",   data = "ESC"  },
             { description = "Ctrl",  data = "Ctrl" },
         },
-        default = "Ctrl"
+        default = "Ctrl",
+        hover = "Press this button to cancel queued actions",
     },
     {
         name = "interruptOnMove",
@@ -144,7 +166,8 @@ configuration_options = {
             { description = "no",  data = "no"  },
             { description = "yes", data = "yes" },
         },
-        default = "yes"
+        default = "yes",
+        hover = "Should movement with WASD interrupt queued actions?",
     },
     {
         name = "pickFlowersMode",
@@ -155,7 +178,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "no"
+        default = "no",
+        hover = (
+            "Should pick growing flowers (both normal and evil), succulents and cave ferns " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickCarrotsMode",
@@ -166,7 +193,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "yes"
+        default = "yes",
+        hover = (
+            "Should pick naturally growing carrots and carrats " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickMandrakesMode",
@@ -177,7 +208,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "no"
+        default = "no",
+        hover = (
+            "Should pick planted mandrakes " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickMushroomsMode",
@@ -188,7 +223,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "yes"
+        default = "yes",
+        hover = (
+            "Should pick natural growing mushrooms " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickTwigsMode",
@@ -199,7 +238,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "yes"
+        default = "yes",
+        hover = (
+            "Should pick or harvest twigs " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickRotMode",
@@ -210,7 +253,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "yes"
+        default = "yes",
+        hover = (
+            "Should pick up rot " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickSeedsMode",
@@ -221,7 +268,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "yes"
+        default = "yes",
+        hover = (
+            "Should pick up generic seeds " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickRocksMode",
@@ -232,7 +283,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "yes"
+        default = "yes",
+        hover = (
+            "Should pick up rocks " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickFlintMode",
@@ -243,7 +298,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "yes"
+        default = "yes",
+        hover = (
+            "Should pick up flint " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "pickTreeBlossomMode",
@@ -254,7 +313,11 @@ configuration_options = {
             { description = "Cherry pick only", data = "cherryPickOnly" },
             { description = "yes",              data = "yes"            },
         },
-        default = "cherryPickOnly"
+        default = "cherryPickOnly",
+        hover = (
+            "Should pick up tree blossom (both perishable and worldgen) " ..
+            "when selecting area or clicking directly?"
+        ),
     },
     {
         name = "digStumpsAsWerebeaver",
@@ -264,7 +327,8 @@ configuration_options = {
             { description = "no",  data = "no"  },
             { description = "yes", data = "yes" },
         },
-        default = "yes"
+        default = "yes",
+        hover = "Should werebeaver spend time on digging up tree stumps?",
     },
 }
 
