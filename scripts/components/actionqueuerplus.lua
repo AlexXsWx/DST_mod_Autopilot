@@ -279,6 +279,10 @@ ActionQueuer_applyToDeploy = function(self, selectionBox)
                 if self._config.tryMakeDeployPossible then
                     while not canDeployItemAtPosition(itemToDeploy, position) do
                         local tried = ActionQueuer_tryToMakeDeployPossible(self, position)
+                        if self._interrupted then
+                            self:Interrupt()
+                            return
+                        end
                         if not tried then
                             break
                         end
