@@ -360,6 +360,20 @@ configuration_options = {
         hover = "Algorithm used to select positions within selected area",
     },
     {
+        name = "tryMakeDeployPossible",
+        label = "Auto scare birds and pick seeds",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "yes",
+        hover = (
+            "Birds can interfere with possible deploy location. " ..
+            "Should character automatically scare them off and pick up seeds they leave?"
+        ),
+    },
+    {
         name = "logDebugEnabled",
         label = "Debug mode",
         options = 

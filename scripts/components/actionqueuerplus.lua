@@ -30,6 +30,7 @@ local ActionQueuer = Class(function(self, playerInst)
         isDeselectKeyDown = nil,
         settingsForFilters = {},
         positionIteratorName = "legacy",
+        tryMakeDeployPossible = true,
     }
 
     --
@@ -275,10 +276,12 @@ ActionQueuer_applyToDeploy = function(self, selectionBox)
                     self:Interrupt()
                     return
                 end
-                while not canDeployItemAtPosition(itemToDeploy, position) do
-                    local tried = ActionQueuer_tryToMakeDeployPossible(self, position)
-                    if not tried then
-                        break
+                if self._config.tryMakeDeployPossible then
+                    while not canDeployItemAtPosition(itemToDeploy, position) do
+                        local tried = ActionQueuer_tryToMakeDeployPossible(self, position)
+                        if not tried then
+                            break
+                        end
                     end
                 end
                 if canDeployItemAtPosition(itemToDeploy, position) then
