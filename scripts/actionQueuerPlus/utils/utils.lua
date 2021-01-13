@@ -94,14 +94,12 @@ end
 function utils.doAction(
     playerController,
     bufferedAction,
-    right,
+    rpc,
     position,
     target,
     released
 )
-    local controlmods = playerController:EncodeControlMods()
-
-    local function rpcClick(preview)
+    local function sendRPC(preview)
         local canForceOrNil, releasedOrNil
         if preview then
             canForceOrNil = nil
@@ -111,53 +109,64 @@ function utils.doAction(
             releasedOrNil = nil
         end
 
-        -- FIXME: update
-        local platform = nil
-        local platform_relative = nil
-
-        if right then
-            playerController.remote_controls[CONTROL_SECONDARY] = 0
-            local rotation = bufferedAction.rotation ~= 0 and bufferedAction.rotation or nil
+        if rpc == RPC.RightClick or rpc == RPC.LeftClick then
+            -- FIXME: update
+            local platform = nil
+            local platform_relative = nil
+            local controlmods = playerController:EncodeControlMods()
+            if rpc == RPC.RightClick then
+                playerController.remote_controls[CONTROL_SECONDARY] = 0
+                local rotation = bufferedAction.rotation ~= 0 and bufferedAction.rotation or nil
+                SendRPCToServer(
+                    RPC.RightClick,
+                    bufferedAction.action.code,
+                    position.x,
+                    position.z,
+                    target,
+                    rotation, -- only for right click
+                    releasedOrNil,
+                    controlmods,
+                    canForceOrNil,
+                    bufferedAction.action.mod_name,
+                    platform,
+                    platform_relative
+                )
+            else
+                playerController.remote_controls[CONTROL_PRIMARY] = 0
+                SendRPCToServer(
+                    RPC.LeftClick,
+                    bufferedAction.action.code,
+                    position.x,
+                    position.z,
+                    target,
+                    releasedOrNil,
+                    controlmods,
+                    canForceOrNil,
+                    bufferedAction.action.mod_name,
+                    platform,
+                    platform_relative
+                )
+            end
+        elseif rpc == RPC.ActionButton then
             SendRPCToServer(
-                RPC.RightClick,
+                RPC.ActionButton,
                 bufferedAction.action.code,
-                position.x,
-                position.z,
-                target,
-                rotation, -- only for right click
-                releasedOrNil,
-                controlmods,
-                canForceOrNil,
-                bufferedAction.action.mod_name,
-                platform,
-                platform_relative
-            )
-        else
-            playerController.remote_controls[CONTROL_PRIMARY] = 0
-            SendRPCToServer(
-                RPC.LeftClick,
-                bufferedAction.action.code,
-                position.x,
-                position.z,
                 target,
                 releasedOrNil,
-                controlmods,
                 canForceOrNil,
-                bufferedAction.action.mod_name,
-                platform,
-                platform_relative
+                bufferedAction.action.mod_name
             )
         end
     end
 
     if playerController.locomotor == nil then
-        rpcClick(false)
+        sendRPC(false)
     elseif (
         bufferedAction.action ~= ACTIONS.WALKTO and
         playerController:CanLocomote()
     ) then
         bufferedAction.preview_cb = function()
-            rpcClick(true)
+            sendRPC(true)
         end
     end
 
@@ -166,10 +175,10 @@ end
 
 function utils.doDeployAction(
     playerInst,
-    playerController,
     actionPositionToCopy,
     activeItem
 )
+    local playerController = playerInst.components.playercontroller
     local actionPosition = Vector3(actionPositionToCopy.x, 0, actionPositionToCopy.z)
 
     local bufferedAction = BufferedAction(
@@ -183,7 +192,14 @@ function utils.doDeployAction(
         bufferedAction.rotation = playerController.deployplacer.Transform:GetRotation()
     end
 
-    utils.doAction(playerController, bufferedAction, true, actionPosition, nil, true)
+    utils.doAction(
+        playerController,
+        bufferedAction,
+        RPC.RightClick,
+        actionPosition,
+        nil,
+        true
+    )
 end
 
 -- TODO: move to a better place
@@ -264,7 +280,14 @@ function utils.createSmartDoNextAction(playerController)
             )
         end
 
-        utils.doAction(playerController, bufferedAction, right, position, targetEntity, released)
+        utils.doAction(
+            playerController,
+            bufferedAction,
+            right and RPC.RightClick or RPC.LeftClick,
+            position,
+            targetEntity,
+            released
+        )
 
         return true
     end
