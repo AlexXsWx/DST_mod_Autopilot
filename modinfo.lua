@@ -17,7 +17,7 @@ description = (
 -- TODO:
 -- * Support new farming? (use hoe)
 -- * Zig-zag planting trees? hex placing?
--- * Auto pick up seeds / scare birds / wait for butterflies / wait for shadow creatures?
+-- * Auto wait for butterflies / wait for shadow creatures?
 -- * World-aligned coords?
 -- * Smarter/faster bulk pick-up?
 -- * Repeat walk in direction
