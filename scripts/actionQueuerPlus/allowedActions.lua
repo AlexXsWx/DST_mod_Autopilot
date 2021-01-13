@@ -72,6 +72,7 @@ local isActionAllowedMap = {
         local cherrypickingOrDeselecting = context.cherrypicking or context.deselecting
         if (
             context.target:HasTag("stump") and
+            -- TODO: change to inverse to support optionality of the config
             not config.digStumpsAsWerebeaver and
             context.playerInst:HasTag("beaver")
         ) then

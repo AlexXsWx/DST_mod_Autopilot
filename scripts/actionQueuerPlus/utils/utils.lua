@@ -91,7 +91,7 @@ end
 
 --
 
-local function doAction(
+function utils.doAction(
     playerController,
     bufferedAction,
     right,
@@ -183,7 +183,7 @@ function utils.doDeployAction(
         bufferedAction.rotation = playerController.deployplacer.Transform:GetRotation()
     end
 
-    doAction(playerController, bufferedAction, true, actionPosition, nil, true)
+    utils.doAction(playerController, bufferedAction, true, actionPosition, nil, true)
 end
 
 -- TODO: move to a better place
@@ -264,7 +264,7 @@ function utils.createSmartDoNextAction(playerController)
             )
         end
 
-        doAction(playerController, bufferedAction, right, position, targetEntity, released)
+        utils.doAction(playerController, bufferedAction, right, position, targetEntity, released)
 
         return true
     end

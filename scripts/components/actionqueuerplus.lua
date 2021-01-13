@@ -275,6 +275,80 @@ ActionQueuer_applyToDeploy = function(self, selectionBox)
                     self:Interrupt()
                     return
                 end
+                if not canDeployItemAtPosition(itemToDeploy, position) then
+                    -- try to make deploy possible
+                    local radius = 4
+                    local entitiesAround = TheSim:FindEntities(
+                        position.x, 0, position.z,
+                        radius,
+                        nil,
+                        constants.UNSELECTABLE_TAGS
+                    )
+                    local seedEntity = nil
+                    for _, entity in pairs(entitiesAround) do
+                        if entity.prefab == "seeds" then
+                            seedEntity = entity
+                            break
+                        end
+                    end
+                    if seedEntity then
+                        logger.logDebug("seeds detected, commencing pick up")
+                        local action = BufferedAction(playerInst, seedEntity, ACTIONS.PICKUP)
+                        -- local action = getAction(
+                        --     {
+                        --         playerInst = playerInst,
+                        --         target = seedEntity,
+                        --         right = false,
+                        --         cherrypicking = true,
+                        --         deselecting = false,
+                        --     },
+                        --     -- FIXME
+                        --     { pickSeedsMode = "yes"} -- self._config.settingsForFilters
+                        -- )
+                        -- if action and action.action == ACTIONS.PICKUP then
+                            local released = true
+                            local function rpc(preview)
+                                local canForceOrNil, releasedOrNil
+                                if preview then
+                                    canForceOrNil = nil
+                                    releasedOrNil = released
+                                else
+                                    canForceOrNil = action.action.canforce
+                                    releasedOrNil = nil
+                                end
+                                local seedPosition = seedEntity:GetPosition()
+                                SendRPCToServer(
+                                    RPC.ActionButton,
+                                    action.action.code,
+                                    seedEntity,
+                                    releasedOrNil,
+                                    canForceOrNil,
+                                    action.action.mod_name
+                                )
+                            end
+                            if playerController.locomotor == nil then
+                                rpc(false)
+                            elseif playerController:CanLocomote() then
+                                action.preview_cb = function()
+                                    rpc(true)
+                                end
+                            end
+                            playerController:DoAction(action)
+
+                            -- utils.doAction(
+                            --     playerController,
+                            --     action,
+                            --     false,
+                            --     seedEntity:GetPosition(),
+                            --     seedEntity,
+                            --     true
+                            -- )
+                        -- else
+                        --     logger.logDebug("didn't get pick up action")
+                        -- end
+                        ActionQueuer_waitAction(self)
+                    end
+                end
                 if canDeployItemAtPosition(itemToDeploy, position) then
                     deployPosition = position
                     acceptPosition()
