@@ -82,6 +82,8 @@ local function updateConfig()
     config.autoCollect     = GetModConfigData("autoCollect") == "yes"
     config.interruptOnMove = GetModConfigData("interruptOnMove") == "yes"
 
+    config.positionIteratorName = GetModConfigData("positionIteratorName")
+
     --
 
     local settingsForFilters = {}
@@ -110,10 +112,11 @@ end
 
 local function reconfigureComponent(actionqueuerplus)
     actionqueuerplus:Configure({
-        autoCollect         = config.autoCollect,
-        isSelectKeyDown     = config.isSelectKeyDown,
-        isDeselectKeyDown   = config.isDeselectKeyDown,
-        settingsForFilters  = config.settingsForFilters,
+        autoCollect          = config.autoCollect,
+        isSelectKeyDown      = config.isSelectKeyDown,
+        isDeselectKeyDown    = config.isDeselectKeyDown,
+        settingsForFilters   = config.settingsForFilters,
+        positionIteratorName = config.positionIteratorName
     })
 end
 

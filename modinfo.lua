@@ -348,6 +348,17 @@ configuration_options = {
         hover = "Should werebeaver spend time on digging up tree stumps?",
     },
     {
+        name = "positionIteratorName",
+        label = "Position iterator",
+        options = 
+        {
+            { description = "legacy", data = "legacy" },
+            { description = "new",    data = "new"    },
+        },
+        default = "legacy",
+        hover = "Algorithm used to select positions within selected area",
+    },
+    {
         name = "logDebugEnabled",
         label = "Debug mode",
         options = 

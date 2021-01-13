@@ -28,6 +28,7 @@ local ActionQueuer = Class(function(self, playerInst)
         isSelectKeyDown   = nil,
         isDeselectKeyDown = nil,
         settingsForFilters = {},
+        positionIteratorName = "legacy",
     }
 
     --
@@ -215,7 +216,13 @@ ActionQueuer_applyToDeploy = function(self, selectionBox)
 
     if self._activeThread then return end
 
-    local getNextDeployPosition = geoUtils.createPositionIterator(selectionBox)
+    local iterators = {
+        legacy = geoUtils.createPositionIterator,
+        -- FIXME: also use for preview entities selection
+        new    = geoUtils.createPositionIterator2,
+    }
+
+    local getNextDeployPosition = iterators[self._config.positionIteratorName](selectionBox)
 
     if (
         getNextDeployPosition == nil or
