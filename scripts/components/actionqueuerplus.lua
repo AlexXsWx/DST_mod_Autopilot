@@ -275,8 +275,11 @@ ActionQueuer_applyToDeploy = function(self, selectionBox)
                     self:Interrupt()
                     return
                 end
-                if not canDeployItemAtPosition(itemToDeploy, position) then
-                    ActionQueuer_tryToMakeDeployPossible(self, position)
+                while not canDeployItemAtPosition(itemToDeploy, position) do
+                    local tried = ActionQueuer_tryToMakeDeployPossible(self, position)
+                    if not tried then
+                        break
+                    end
                 end
                 if canDeployItemAtPosition(itemToDeploy, position) then
                     deployPosition = position
