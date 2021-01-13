@@ -327,6 +327,23 @@ ActionQueuer_tryToMakeDeployPossible = function(self, position)
             )
             ActionQueuer_waitAction(self)
             break
+        elseif (
+            entity.prefab == "crow" or
+            entity.prefab == "robin" or
+            entity.prefab == "robin_winter" or
+            entity.prefab == "canary"
+        ) then
+            tried = true
+            utils.doAction(
+                playerController,
+                BufferedAction(playerInst, entity, ACTIONS.WALKTO),
+                RPC.ActionButton,
+                nil,
+                entity,
+                true
+            )
+            ActionQueuer_waitAction(self)
+            break
         end
     end
     return tried
