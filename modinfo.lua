@@ -1,6 +1,6 @@
 name = "Autopilot"
 author = "AlexXsWx"
-version = "0.0.1"
+version = "1.0.0"
 
 description = (
     "This mod is a rewrite and extending of ActionQueue(DST) v1.3.6 by simplex and then xiaoXzzz\n"..
