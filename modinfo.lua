@@ -54,11 +54,11 @@ configuration_options = {
         label = "KEY BINDINGS                        ",
         options = { { description = "----------------------", data = -1 } },
         default = -1,
-        hover = "This section lets you change various key bindings",
+        hover = "This section lets you configure key bindings.",
     },
     {
         name = "keyToOpenOptions",
-        label = "Key to toggle options screen",
+        label = "Toggle this menu",
         options = 
         {
             { description = "None",  data = "none" },
@@ -71,12 +71,12 @@ configuration_options = {
         default = "C",
         hover = (
             "Allows to change all these options mid-game.\n" .. 
-            "Press again to close options screen without applying changes"
+            "Press again to close the configuration screen without applying changes."
         ),
     },
     {
         name = "keyToQueueActions",
-        label = "Key to queue actions",
+        label = "Select target(s) / repeat action",
         options = 
         {
             { description = "Shift", data = "Shift" },
@@ -90,12 +90,12 @@ configuration_options = {
         default = "Shift",
         hover = (
             "Hold this button while clicking or selecting area with left or right mouse button " ..
-            "to queue actions"
+            "to queue actions."
         ),
     },
     {
         name = "altKeyToQueueActions",
-        label = "Alternative key to queue actions",
+        label = "Select target(s) / repeat action",
         options = 
         {
             { description = "None",  data = "none"  },
@@ -110,12 +110,13 @@ configuration_options = {
         default = "Z",
         hover = (
             "Hold this button while clicking or selecting area with left or right mouse button " ..
-            "to queue actions"
+            "to queue actions. " ..
+            "Alternative binding."
         ),
     },
     {
         name = "keyToDeselect",
-        label = "Key to deselect area",
+        label = "Deselect target(s)",
         options = 
         {
             { description = "None",  data = "none" },
@@ -131,12 +132,12 @@ configuration_options = {
         default = "X",
         hover = (
             "Hold this button while clicking or selecting area with left or right mouse button " ..
-            "to cancel all or some of previously queued actions"
+            "to cancel all or some of previously queued actions."
         ),
     },
     {
         name = "keyToInterrupt",
-        label = "Explicit key to interrupt",
+        label = "Interrupt",
         options = 
         {
             { description = "None",  data = "none" },
@@ -144,19 +145,22 @@ configuration_options = {
             { description = "Ctrl",  data = "Ctrl" },
         },
         default = "ESC",
-        hover = "Press this button to cancel queued actions",
+        hover = "Press this button to explicitly cancel queued actions.",
     },
     {
         name = "altKeyToInterrupt",
-        label = "Alternative explicit key to interrupt",
+        label = "Interrupt",
         options = 
         {
             { description = "None",  data = "none" },
             { description = "ESC",   data = "ESC"  },
             { description = "Ctrl",  data = "Ctrl" },
         },
-        default = "Ctrl",
-        hover = "Press this button to cancel queued actions",
+        default = "none",
+        hover = (
+            "Press this button to explicitly cancel queued actions.\n" ..
+            "Alternative binding."
+        ),
     },
 
     -- Auto behaviors
@@ -167,18 +171,7 @@ configuration_options = {
         label = "AUTO BEHAVIORS                  ",
         options = { { description = "----------------------", data = -1 } },
         default = -1,
-        hover = "This section lets you change auto behaviors",
-    },
-    {
-        name = "interruptOnMove",
-        label = "Interrupt on move",
-        options = 
-        {
-            { description = "no",  data = "no"  },
-            { description = "yes", data = "yes" },
-        },
-        default = "yes",
-        hover = "Should movement with WASD interrupt queued actions?",
+        hover = "This section lets you configure automatic behaviors.",
     },
     {
         name = "autoCollect",
@@ -196,7 +189,7 @@ configuration_options = {
     },
     {
         name = "tryMakeDeployPossible",
-        label = "Auto scare birds and pick seeds",
+        label = "Scare birds and pick up seeds",
         options = 
         {
             { description = "no",  data = "no"  },
@@ -204,10 +197,20 @@ configuration_options = {
         },
         default = "yes",
         hover = (
-            "Birds can interfere with possible plant/deploy location. " ..
-            "Should character automatically scare them off and pick up seeds they leave? " ..
-            "Only applies when performing queued plant/deploy actions "
+            "Should character automatically scare birds and pick up seeds " ..
+            "when planting / deploying?"
         ),
+    },
+    {
+        name = "interruptOnMove",
+        label = "Interrupt on move",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "yes",
+        hover = "Should movement with WASD interrupt queued actions?",
     },
 
     -- Pick up / pick filters
@@ -217,12 +220,12 @@ configuration_options = {
         label = "PICK UP / PICK FILTERS          ",
         options = { { description = "----------------------", data = -1 } },
         default = -1,
-        hover = "This section lets you change pick up filters",
+        hover = "This section lets you configure pick up filters.",
     },
 
     {
         name = "pickFlowersMode",
-        label = "Pick flowers", -- also evil flowers, cave fern and succulent
+        label = "Flowers", -- also evil flowers, cave fern and succulent
         options = 
         {
             { description = "no",               data = "no"             },
@@ -237,7 +240,7 @@ configuration_options = {
     },
     {
         name = "pickCarrotsMode",
-        label = "Pick carrots", -- and carrat
+        label = "Carrots", -- and carrat
         options = 
         {
             { description = "no",               data = "no"             },
@@ -252,7 +255,7 @@ configuration_options = {
     },
     {
         name = "pickMandrakesMode",
-        label = "Pick mandrakes",
+        label = "Mandrakes",
         options = 
         {
             { description = "no",               data = "no"             },
@@ -267,7 +270,7 @@ configuration_options = {
     },
     {
         name = "pickMushroomsMode",
-        label = "Pick mushrooms", -- excluding mushroom farm and already picked ones
+        label = "Mushrooms", -- excluding mushroom farm and already picked ones
         options = 
         {
             { description = "no",               data = "no"             },
@@ -282,7 +285,7 @@ configuration_options = {
     },
     {
         name = "pickTwigsMode",
-        label = "Pick twigs",
+        label = "Twigs",
         options = 
         {
             { description = "no",               data = "no"             },
@@ -297,7 +300,7 @@ configuration_options = {
     },
     {
         name = "pickRotMode",
-        label = "Pick rot",
+        label = "Rot",
         options = 
         {
             { description = "no",               data = "no"             },
@@ -312,7 +315,7 @@ configuration_options = {
     },
     {
         name = "pickSeedsMode",
-        label = "Pick seeds",
+        label = "Seeds",
         options = 
         {
             { description = "no",               data = "no"             },
@@ -327,7 +330,7 @@ configuration_options = {
     },
     {
         name = "pickRocksMode",
-        label = "Pick rocks",
+        label = "Rocks",
         options = 
         {
             { description = "no",               data = "no"             },
@@ -342,7 +345,7 @@ configuration_options = {
     },
     {
         name = "pickFlintMode",
-        label = "Pick flint",
+        label = "Flint",
         options = 
         {
             { description = "no",               data = "no"             },
@@ -357,7 +360,7 @@ configuration_options = {
     },
     {
         name = "pickTreeBlossomMode",
-        label = "Pick tree blossom", -- both perishing and worldgen
+        label = "Tree blossom", -- both perishing and worldgen
         options = 
         {
             { description = "no",               data = "no"             },
@@ -379,7 +382,7 @@ configuration_options = {
         label = "MISC. FILTERS                           ",
         options = { { description = "----------------------", data = -1 } },
         default = -1,
-        hover = "This section lets you change miscellaneous filters",
+        hover = "This section lets you configure miscellaneous filters.",
     },
     {
         name = "digUpSeeds",
@@ -416,7 +419,7 @@ configuration_options = {
         label = "DEBUG                                       ",
         options = { { description = "----------------------", data = -1 } },
         default = -1,
-        hover = "This section is reserved for debug purposes",
+        hover = "This section is reserved for debug purposes.",
     },
 
     {
@@ -428,7 +431,7 @@ configuration_options = {
             { description = "yes", data = "yes" },
         },
         default = "no",
-        hover = "Print debug information in console",
+        hover = "Should print debug information in console?",
     },
 }
 
