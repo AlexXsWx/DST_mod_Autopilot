@@ -29,7 +29,7 @@ local ActionQueuer = Class(function(self, playerInst)
         isSelectKeyDown   = nil,
         isDeselectKeyDown = nil,
         settingsForFilters = {},
-        positionIteratorName = "legacy",
+        positionIteratorName = "new",
         tryMakeDeployPossible = true,
     }
 

@@ -215,9 +215,9 @@ configuration_options = {
         options = 
         {
             { description = "legacy", data = "legacy" },
-            -- { description = "new",    data = "new"    },
+            { description = "new",    data = "new"    },
         },
-        default = "legacy",
+        default = "new",
         hover = "Algorithm used to select positions within selected area",
     },
 
