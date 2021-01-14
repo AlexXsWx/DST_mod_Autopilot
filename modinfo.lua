@@ -209,17 +209,6 @@ configuration_options = {
             "Only applies when performing queued plant/deploy actions "
         ),
     },
-    {
-        name = "positionIteratorName",
-        label = "Position iterator",
-        options = 
-        {
-            { description = "legacy", data = "legacy" },
-            -- { description = "new",    data = "new"    },
-        },
-        default = "legacy",
-        hover = "Algorithm used to select positions within selected area",
-    },
 
     -- Pick up / pick filters
     {
