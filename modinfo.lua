@@ -3,28 +3,11 @@ author = "AlexXsWx"
 version = "0.0.1"
 
 description = (
-    "This mod is a modification of ActionQueue(DST) v1.3.6 by simplex, xiaoXzzz, rezecib\n"..
+    "This mod is a rewrite and extending of ActionQueue(DST) v1.3.6 by simplex and then xiaoXzzz\n"..
     "\n"..
     "Queue a sequence of actions (such as chopping, mining, picking up, planting etc) "..
     "by holding Shift (can be changed in config) and clicking on stuff or selecting area."
 )
-
--- TODO:
--- * Support new farming? (use hoe)
--- * Zig-zag planting trees? hex placing?
--- * Auto wait for butterflies / wait for shadow creatures?
--- * World-aligned coords?
--- * Smarter/faster bulk pick-up?
--- * Repeat walk in direction
--- * Repeat walk along edge?
--- * Align player position to tile? (walk to) / increment steps? (to support dropping items at exact location)
--- * Button to auto pickup anything around?
--- * Don't interrupt current action when queing first one with shift+click
--- * Separate selection box actions and pick actions
--- * only pick what's already in inventory
--- * Edge case: when using Shift, item shift on player should drop item but does nothing
--- * TODO: support cherry pick heaving
--- * Fix inconsistent beaver stump digging speed
 
 api_version = 6 -- not sure about this one since DS is not supported
 api_version_dst = 10
