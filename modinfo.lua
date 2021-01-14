@@ -3,15 +3,10 @@ author = "AlexXsWx"
 version = "0.0.1"
 
 description = (
-    "Original author: simplex\n"..
-    "Further work: xiaoXzzz & rezecib\n"..
+    "This mod is a modification of ActionQueue(DST) v1.3.6 by simplex, xiaoXzzz, rezecib\n"..
     "\n"..
-    "This is another modification by me on top of the \"ActionQueue(DST)\" v1.3.6.\n"..
-    "\n"..
-    "Allows queueing a sequence of actions (such as chopping, mining, picking up, planting etc) "..
-    "by selecting targets within a bounding box, holding Shift (can be changed in config).\n"..
-    "Supports auto repeat craft by Shift + click.\n"..
-    "Supports auto collecting (disabled in config by default)."
+    "Queue a sequence of actions (such as chopping, mining, picking up, planting etc) "..
+    "by holding Shift (can be changed in config) and clicking on stuff or selecting area."
 )
 
 -- TODO:
