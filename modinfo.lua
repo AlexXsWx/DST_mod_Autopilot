@@ -45,6 +45,17 @@ all_clients_require_mod = false
 client_only_mod = true
 
 configuration_options = {
+
+    -- Key bindings
+
+    {
+        -- not a real options, just using it as separator
+        name = "separatorKeyBindings",
+        label = "KEY BINDINGS                        ",
+        options = { { description = "----------------------", data = -1 } },
+        default = -1,
+        hover = "This section lets you change various key bindings",
+    },
     {
         name = "keyToOpenOptions",
         label = "Key to toggle options screen",
@@ -61,20 +72,6 @@ configuration_options = {
         hover = (
             "Allows to change all these options mid-game.\n" .. 
             "Press again to close options screen without applying changes"
-        ),
-    },
-    {
-        name = "autoCollect",
-        label = "Auto collect",
-        options = 
-        {
-            { description = "no",  data = "no"  },
-            { description = "yes", data = "yes" },
-        },
-        default = "no",
-        hover = (
-            "Should character pick up everything around itself " ..
-            "after chopping, digging, mining and hammering?"
         ),
     },
     {
@@ -161,6 +158,17 @@ configuration_options = {
         default = "Ctrl",
         hover = "Press this button to cancel queued actions",
     },
+
+    -- Auto behaviors
+
+    {
+        -- not a real options, just using it as separator
+        name = "separatorAutoBehaviors",
+        label = "AUTO BEHAVIORS                  ",
+        options = { { description = "----------------------", data = -1 } },
+        default = -1,
+        hover = "This section lets you change auto behaviors",
+    },
     {
         name = "interruptOnMove",
         label = "Interrupt on move",
@@ -172,6 +180,57 @@ configuration_options = {
         default = "yes",
         hover = "Should movement with WASD interrupt queued actions?",
     },
+    {
+        name = "autoCollect",
+        label = "Auto collect",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "no",
+        hover = (
+            "Should character pick up everything around itself " ..
+            "after chopping, digging, mining and hammering?"
+        ),
+    },
+    {
+        name = "tryMakeDeployPossible",
+        label = "Auto scare birds and pick seeds",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "yes",
+        hover = (
+            "Birds can interfere with possible plant/deploy location. " ..
+            "Should character automatically scare them off and pick up seeds they leave? " ..
+            "Only applies when performing queued plant/deploy actions "
+        ),
+    },
+    {
+        name = "positionIteratorName",
+        label = "Position iterator",
+        options = 
+        {
+            { description = "legacy", data = "legacy" },
+            -- { description = "new",    data = "new"    },
+        },
+        default = "legacy",
+        hover = "Algorithm used to select positions within selected area",
+    },
+
+    -- Pick up / pick filters
+    {
+        -- not a real options, just using it as separator
+        name = "separatorPickUpPickFilters",
+        label = "PICK UP / PICK FILTERS          ",
+        options = { { description = "----------------------", data = -1 } },
+        default = -1,
+        hover = "This section lets you change pick up filters",
+    },
+
     {
         name = "pickFlowersMode",
         label = "Pick flowers", -- also evil flowers, cave fern and succulent
@@ -322,6 +381,17 @@ configuration_options = {
             "when selecting area or clicking directly?"
         ),
     },
+
+    -- misc filters
+
+    {
+        -- not a real options, just using it as separator
+        name = "separatorMiscFilter",
+        label = "MISC. FILTERS                           ",
+        options = { { description = "----------------------", data = -1 } },
+        default = -1,
+        hover = "This section lets you change miscellaneous filters",
+    },
     {
         name = "digUpSeeds",
         label = "Dig up planted seeds",
@@ -348,31 +418,18 @@ configuration_options = {
         default = "yes",
         hover = "Should werebeaver spend time on digging up tree stumps?",
     },
+
+    -- debug
+
     {
-        name = "positionIteratorName",
-        label = "Position iterator",
-        options = 
-        {
-            { description = "legacy", data = "legacy" },
-            -- { description = "new",    data = "new"    },
-        },
-        default = "legacy",
-        hover = "Algorithm used to select positions within selected area",
+        -- not a real options, just using it as separator
+        name = "separatorDebug",
+        label = "DEBUG                                       ",
+        options = { { description = "----------------------", data = -1 } },
+        default = -1,
+        hover = "This section is reserved for debug purposes",
     },
-    {
-        name = "tryMakeDeployPossible",
-        label = "Auto scare birds and pick seeds",
-        options = 
-        {
-            { description = "no",  data = "no"  },
-            { description = "yes", data = "yes" },
-        },
-        default = "yes",
-        hover = (
-            "Birds can interfere with possible deploy location. " ..
-            "Should character automatically scare them off and pick up seeds they leave?"
-        ),
-    },
+
     {
         name = "logDebugEnabled",
         label = "Debug mode",
