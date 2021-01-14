@@ -1,5 +1,5 @@
 local function log(msg)
-    print("[Mod_AQP] " .. msg)
+    print("[Mod_Autopilot] " .. msg)
 end
 
 local logger = {}

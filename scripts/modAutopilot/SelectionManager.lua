@@ -1,5 +1,5 @@
-local utils           = require "actionQueuerPlus/utils/utils"
-local highlightHelper = require "actionQueuerPlus/highlightHelper"
+local utils           = require "modAutopilot/utils/utils"
+local highlightHelper = require "modAutopilot/highlightHelper"
 
 local SelectionManager = Class(function(self)
     -- Maps entities to "right button?" (true or false); nil if entity is not selected

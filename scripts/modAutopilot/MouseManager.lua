@@ -1,10 +1,10 @@
-local constants       = require "actionQueuerPlus/constants"
-local logger          = require "actionQueuerPlus/utils/logger"
-local utils           = require "actionQueuerPlus/utils/utils"
-local asyncUtils      = require "actionQueuerPlus/utils/asyncUtils"
-local geoUtils        = require "actionQueuerPlus/utils/geoUtils"
-local mouseAPI        = require "actionQueuerPlus/input/mouseAPI"
-local SelectionWidget = require "actionQueuerPlus/ui/SelectionWidget"
+local constants       = require "modAutopilot/constants"
+local logger          = require "modAutopilot/utils/logger"
+local utils           = require "modAutopilot/utils/utils"
+local asyncUtils      = require "modAutopilot/utils/asyncUtils"
+local geoUtils        = require "modAutopilot/utils/geoUtils"
+local mouseAPI        = require "modAutopilot/input/mouseAPI"
+local SelectionWidget = require "modAutopilot/ui/SelectionWidget"
 
 -- forward declaration --
 local MouseManager_CreateNewSession

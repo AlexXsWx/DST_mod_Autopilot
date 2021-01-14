@@ -1,4 +1,4 @@
-local logger = require "actionQueuerPlus/utils/logger"
+local logger = require "modAutopilot/utils/logger"
 
 local geoUtils = {}
 

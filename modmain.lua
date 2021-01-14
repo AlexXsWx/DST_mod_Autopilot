@@ -1,10 +1,10 @@
 local ModConfigutationScreen = require("screens/redux/modconfigurationscreen")
 
-local keyMap           = require "actionQueuerPlus/input/keyMap"
-local logger           = require "actionQueuerPlus/utils/logger"
-local utils            = require "actionQueuerPlus/utils/utils"
-local asyncUtils       = require "actionQueuerPlus/utils/asyncUtils"
-local highlightHelper  = require "actionQueuerPlus/highlightHelper"
+local keyMap           = require "modAutopilot/input/keyMap"
+local logger           = require "modAutopilot/utils/logger"
+local utils            = require "modAutopilot/utils/utils"
+local asyncUtils       = require "modAutopilot/utils/asyncUtils"
+local highlightHelper  = require "modAutopilot/highlightHelper"
 
 Assets = {
     Asset("ATLAS", "images/selection_square.xml"),
@@ -16,7 +16,7 @@ local assert = GLOBAL.assert
 
 -- forward declaration --
 local onPlayerPostInit
-local initActionQueuerPlus
+local initAutopilot
 local updateInputHandler
 local bindOpenMenuButton
 local enableAutoRepeatCraft
@@ -40,7 +40,7 @@ onPlayerPostInit = function(playerInst)
         -- condition
         function() return utils.toboolean(playerInst.components.playercontroller) end,
         -- action once the condition is met
-        function() initActionQueuerPlus(playerInst) end
+        function() initAutopilot(playerInst) end
     )
 end
 
@@ -110,8 +110,8 @@ local function updateConfig()
     config.settingsForFilters = settingsForFilters
 end
 
-local function reconfigureComponent(actionqueuerplus)
-    actionqueuerplus:Configure({
+local function reconfigureComponent(modautopilot)
+    modautopilot:Configure({
         autoCollect           = config.autoCollect,
         isSelectKeyDown       = config.isSelectKeyDown,
         isDeselectKeyDown     = config.isDeselectKeyDown,
@@ -120,25 +120,25 @@ local function reconfigureComponent(actionqueuerplus)
     })
 end
 
-initActionQueuerPlus = function(playerInst)
-    logger.logDebug("initActionQueuerPlus")
+initAutopilot = function(playerInst)
+    logger.logDebug("initAutopilot")
 
     highlightHelper.applyUnhighlightOverride(playerInst)
 
     updateConfig()
 
-    if playerInst.components.actionqueuerplus then
-        logger.logWarning("actionqueuerplus component already exists")
+    if playerInst.components.modautopilot then
+        logger.logWarning("modautopilot component already exists")
         return
     end
 
-    playerInst:AddComponent("actionqueuerplus")
-    reconfigureComponent(playerInst.components.actionqueuerplus)
+    playerInst:AddComponent("modautopilot")
+    reconfigureComponent(playerInst.components.modautopilot)
 
     updateInputHandler(playerInst)
     bindOpenMenuButton(function()
         updateConfig()
-        reconfigureComponent(playerInst.components.actionqueuerplus)
+        reconfigureComponent(playerInst.components.modautopilot)
     end)
     enableAutoRepeatCraft(playerInst)
 end
@@ -170,13 +170,13 @@ updateInputHandler = function(playerInst)
                 return true
             end
 
-            local actionqueuerplus = playerInst.components.actionqueuerplus
+            local modautopilot = playerInst.components.modautopilot
 
             if (
                 config.isInterruptKeyDown() and
-                actionqueuerplus:CanInterrupt()
+                modautopilot:CanInterrupt()
             ) then
-                actionqueuerplus:Interrupt()
+                modautopilot:Interrupt()
                 return true
             end
 
@@ -194,7 +194,7 @@ updateInputHandler = function(playerInst)
                 TheInput:IsControlPressed(GLOBAL.CONTROL_ATTACK)
             )
             then
-                actionqueuerplus:Interrupt()
+                modautopilot:Interrupt()
                 -- don't prevent action though
             end
         end
@@ -293,7 +293,7 @@ enableAutoRepeatCraft = function(playerInst)
         "MakeRecipeFromMenu",
         function(self, recipe, skin)
             if config.isSelectKeyDown() and recipe.placer == nil then
-                playerInst.components.actionqueuerplus:RepeatRecipe(recipe, skin)
+                playerInst.components.modautopilot:RepeatRecipe(recipe, skin)
                 return true
             end
         end

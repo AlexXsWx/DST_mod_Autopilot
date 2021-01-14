@@ -1,26 +1,26 @@
-local constants        = require "actionQueuerPlus/constants"
-local utils            = require "actionQueuerPlus/utils/utils"
-local asyncUtils       = require "actionQueuerPlus/utils/asyncUtils"
-local logger           = require "actionQueuerPlus/utils/logger"
-local geoUtils         = require "actionQueuerPlus/utils/geoUtils"
-local allowedActions   = require "actionQueuerPlus/allowedActions"
-local mouseAPI         = require "actionQueuerPlus/input/mouseAPI"
-local MouseManager     = require "actionQueuerPlus/MouseManager"
-local SelectionManager = require "actionQueuerPlus/SelectionManager"
+local constants        = require "modAutopilot/constants"
+local utils            = require "modAutopilot/utils/utils"
+local asyncUtils       = require "modAutopilot/utils/asyncUtils"
+local logger           = require "modAutopilot/utils/logger"
+local geoUtils         = require "modAutopilot/utils/geoUtils"
+local allowedActions   = require "modAutopilot/allowedActions"
+local mouseAPI         = require "modAutopilot/input/mouseAPI"
+local MouseManager     = require "modAutopilot/MouseManager"
+local SelectionManager = require "modAutopilot/SelectionManager"
 
 -- forward declaration --
-local ActionQueuer_initializeMouseManagers
-local ActionQueuer_reconfigureMouseManager
-local ActionQueuer_waitAction
-local ActionQueuer_autoCollect
-local ActionQueuer_applyToDeploy
-local ActionQueuer_tryToMakeDeployPossible
-local ActionQueuer_applyToSelection
+local Autopilot_initializeMouseManagers
+local Autopilot_reconfigureMouseManager
+local Autopilot_waitAction
+local Autopilot_autoCollect
+local Autopilot_applyToDeploy
+local Autopilot_tryToMakeDeployPossible
+local Autopilot_applyToSelection
 local getAction
 local canAutoCollectEntity
 -------------------------
 
-local ActionQueuer = Class(function(self, playerInst)
+local Autopilot = Class(function(self, playerInst)
 
     self._playerInst = playerInst
 
@@ -48,13 +48,13 @@ local ActionQueuer = Class(function(self, playerInst)
     --
 
     asyncUtils.setImmediate(playerInst, function(playerInst)
-        if not (playerInst:IsValid() and playerInst.components.actionqueuerplus) then
-            logger.logError("Unable to enable action queuer component")
+        if not (playerInst:IsValid() and playerInst.components.modautopilot) then
+            logger.logError("Unable to enable modautopilot component")
             return
         end
 
         if playerInst.HUD and playerInst.HUD.controls then
-            ActionQueuer_initializeMouseManagers(self)
+            Autopilot_initializeMouseManagers(self)
         else
             logger.logError("Unable to initialize mouse managers")
         end
@@ -63,27 +63,27 @@ local ActionQueuer = Class(function(self, playerInst)
     end)
 end)
 
-function ActionQueuer:Configure(config)
+function Autopilot:Configure(config)
     self._config = config
     if self._mouseManager then
-        ActionQueuer_reconfigureMouseManager(self)
+        Autopilot_reconfigureMouseManager(self)
     end
 end
 
 --
 
-function ActionQueuer:shouldKeepHighlight(entity)
+function Autopilot:shouldKeepHighlight(entity)
     return self._selectionManager:shouldKeepHighlight(entity)
 end
 
 --
 
-function ActionQueuer:CanInterrupt()
+function Autopilot:CanInterrupt()
     return utils.toboolean(self._activeThread)
 end
 
 
-function ActionQueuer:Interrupt()
+function Autopilot:Interrupt()
 
     -- FIXME: cancel current action (e.g. running to chop a tree)
 
@@ -102,28 +102,28 @@ end
 
 --
 
-function ActionQueuer:Enable()
+function Autopilot:Enable()
     self._mouseManager:Attach(self._playerInst.HUD.controls)
 end
 
-function ActionQueuer:Disable()
+function Autopilot:Disable()
     self:Interrupt()
     self._mouseManager:Detach()
 end
 
 --
 
-function ActionQueuer:OnRemoveFromEntity()
+function Autopilot:OnRemoveFromEntity()
     self:Disable()
 end
 
-function ActionQueuer:OnRemoveEntity()
+function Autopilot:OnRemoveEntity()
     self:Disable()
 end
 
 -- Mouse managers
 
-ActionQueuer_initializeMouseManagers = function(self)
+Autopilot_initializeMouseManagers = function(self)
 
     mouseAPI.initializeHandlerAddrs()
 
@@ -153,9 +153,9 @@ ActionQueuer_initializeMouseManagers = function(self)
             right and
             allowedActions.canDeployItem(self._playerInst.replica.inventory:GetActiveItem())
         ) then
-            ActionQueuer_applyToDeploy(self, optSelectionBox)
+            Autopilot_applyToDeploy(self, optSelectionBox)
         else
-            ActionQueuer_applyToSelection(self, cherrypicking)
+            Autopilot_applyToSelection(self, cherrypicking)
         end
     end
 
@@ -166,10 +166,10 @@ ActionQueuer_initializeMouseManagers = function(self)
         self._startThread,
         apply
     )
-    ActionQueuer_reconfigureMouseManager(self)
+    Autopilot_reconfigureMouseManager(self)
 end
 
-ActionQueuer_reconfigureMouseManager = function(self)
+Autopilot_reconfigureMouseManager = function(self)
     self._mouseManager:setKeyDownGetters(
         self._config.isSelectKeyDown,
         self._config.isDeselectKeyDown
@@ -178,7 +178,7 @@ end
 
 --
 
-function ActionQueuer:RepeatRecipe(recipe, skin)
+function Autopilot:RepeatRecipe(recipe, skin)
 
     if self._activeThread then
         logger.logError("Unable to repeat recipe: something is already in process")
@@ -201,7 +201,7 @@ function ActionQueuer:RepeatRecipe(recipe, skin)
 
         while not self._interrupted and playerInst.replica.builder:CanBuild(recipe.name) do
             playerController:RemoteMakeRecipeFromMenu(recipe, skin)
-            ActionQueuer_waitAction(self)
+            Autopilot_waitAction(self)
         end
         self:Interrupt()
     end)
@@ -213,7 +213,7 @@ local function isItemValid(item)
     return utils.toboolean(item and item.replica and item.replica.inventoryitem)
 end
 
-ActionQueuer_applyToDeploy = function(self, selectionBox)
+Autopilot_applyToDeploy = function(self, selectionBox)
 
     if self._activeThread then return end
 
@@ -271,7 +271,7 @@ ActionQueuer_applyToDeploy = function(self, selectionBox)
                 end
                 if self._config.tryMakeDeployPossible then
                     while not canDeployItemAtPosition(itemToDeploy, position) do
-                        local tried = ActionQueuer_tryToMakeDeployPossible(self, position)
+                        local tried = Autopilot_tryToMakeDeployPossible(self, position)
                         if self._interrupted then
                             self:Interrupt()
                             return
@@ -296,12 +296,12 @@ ActionQueuer_applyToDeploy = function(self, selectionBox)
 
             utils.doDeployAction(playerInst, deployPosition, itemToDeploy)
 
-            ActionQueuer_waitAction(self)
+            Autopilot_waitAction(self)
         end
     end)
 end
 
-ActionQueuer_tryToMakeDeployPossible = function(self, position)
+Autopilot_tryToMakeDeployPossible = function(self, position)
     local playerInst = self._playerInst
     local playerController = playerInst.components.playercontroller
     -- try to make deploy possible
@@ -325,7 +325,7 @@ ActionQueuer_tryToMakeDeployPossible = function(self, position)
                 entity,
                 true
             )
-            ActionQueuer_waitAction(self)
+            Autopilot_waitAction(self)
             break
         elseif (
             entity.prefab == "crow" or
@@ -342,14 +342,14 @@ ActionQueuer_tryToMakeDeployPossible = function(self, position)
                 entity,
                 true
             )
-            ActionQueuer_waitAction(self)
+            Autopilot_waitAction(self)
             break
         end
     end
     return tried
 end
 
-ActionQueuer_applyToSelection = function(self, cherrypicking)
+Autopilot_applyToSelection = function(self, cherrypicking)
     if (
         self._selectionManager:IsSelectionEmpty() or
         self._activeThread or
@@ -416,7 +416,7 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
 
                 if self._interrupted then break end
 
-                ActionQueuer_waitAction(self, true, function()
+                Autopilot_waitAction(self, true, function()
                     -- Don't wait for animation end when chopping and digging finished
                     return (
                         action.action == ACTIONS.CHOP or
@@ -433,7 +433,7 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
                     targetPosition and
                     allowedActions.canAutoCollectAfter(action.action)
                 ) then
-                    ActionQueuer_autoCollect(self, targetPosition)
+                    Autopilot_autoCollect(self, targetPosition)
                 end
 
             else
@@ -445,7 +445,7 @@ ActionQueuer_applyToSelection = function(self, cherrypicking)
     end)
 end
 
-ActionQueuer_autoCollect = function(self, position)
+Autopilot_autoCollect = function(self, position)
     local entitiesAround = TheSim:FindEntities(
         position.x,
         position.y,
@@ -464,7 +464,7 @@ end
 
 --------------------------------------------------------------------
 
-ActionQueuer_waitAction = function(self, optWaitWork, optCancelEarly)
+Autopilot_waitAction = function(self, optWaitWork, optCancelEarly)
     local playerInst = self._playerInst
     local playerController = playerInst.components.playercontroller
     if playerController.locomotor ~= nil then
@@ -547,4 +547,4 @@ end
 
 --
 
-return ActionQueuer
+return Autopilot

@@ -1,5 +1,5 @@
-local utils  = require "actionQueuerPlus/utils/utils"
-local logger = require "actionQueuerPlus/utils/logger"
+local utils  = require "modAutopilot/utils/utils"
+local logger = require "modAutopilot/utils/logger"
 
 local allowedActions = {}
 

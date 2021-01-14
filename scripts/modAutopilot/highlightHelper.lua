@@ -1,6 +1,6 @@
 local Highlight = require "components/highlight"
 
-local utils = require "actionQueuerPlus/utils/utils"
+local utils = require "modAutopilot/utils/utils"
 
 local highlightHelper = {}
 
@@ -11,8 +11,8 @@ function highlightHelper.applyUnhighlightOverride(playerInst)
         function(self, ...)
             return (
                 playerInst and
-                playerInst.components.actionqueuerplus and
-                playerInst.components.actionqueuerplus:shouldKeepHighlight(self.inst)
+                playerInst.components.modautopilot and
+                playerInst.components.modautopilot:shouldKeepHighlight(self.inst)
             )
         end
     )

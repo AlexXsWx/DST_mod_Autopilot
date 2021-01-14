@@ -1,6 +1,6 @@
 local Image = require "widgets/image"
 
-local constants = require "actionQueuerPlus/constants"
+local constants = require "modAutopilot/constants"
 
 local SelectionWidget = Class(function(self, parent)
     self._image = Image("images/selection_square.xml", "selection_square.tex")

@@ -1,7 +1,7 @@
 require "events"
 
-local logger = require "actionQueuerPlus/utils/logger"
-local utils  = require "actionQueuerPlus/utils/utils"
+local logger = require "modAutopilot/utils/logger"
+local utils  = require "modAutopilot/utils/utils"
 
 local mouseAPI = {}
 

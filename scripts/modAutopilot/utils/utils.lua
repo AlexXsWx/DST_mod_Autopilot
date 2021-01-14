@@ -1,5 +1,5 @@
-local constants = require "actionQueuerPlus/constants"
-local logger    = require "actionQueuerPlus/utils/logger"
+local constants = require "modAutopilot/constants"
+local logger    = require "modAutopilot/utils/logger"
 
 local utils = {}
 

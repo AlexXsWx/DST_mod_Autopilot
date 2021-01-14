@@ -1,4 +1,4 @@
-name = "Action Queuer Plus"
+name = "Autopilot"
 author = "AlexXsWx"
 version = "0.0.1"
 
