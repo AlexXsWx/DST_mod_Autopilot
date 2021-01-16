@@ -1,6 +1,6 @@
 name = "Autopilot"
 author = "AlexXsWx"
-version = "1.0.0"
+version = "1.1.0"
 
 description = (
     "This mod is a rewrite and extending of ActionQueue(DST) v1.3.6 by simplex and then xiaoXzzz\n"..
@@ -139,6 +139,71 @@ configuration_options = {
             "Press this button to explicitly cancel queued actions.\n" ..
             "Alternative binding."
         ),
+    },
+
+    -- Double click
+
+    {
+        -- not a real options, just using it as separator
+        name = "separatorDoubleClick",
+        label = "DOUBLE CLICK                             ",
+        options = { { description = "----------------------", data = -1 } },
+        default = -1,
+        hover = (
+            "This section lets you configure double click to select or deselect " ..
+            "entites of given type in given radius."
+        ),
+    },
+
+    {
+        name = "doubleClickMaxTimeSeconds",
+        label = "Double click time",
+        options = 
+        {
+            { description = "Disabled", data = 0.000 },
+            { description = "150ms",    data = 0.150 },
+            { description = "200ms",    data = 0.200 },
+            { description = "250ms",    data = 0.250 },
+            { description = "300ms",    data = 0.300 },
+            { description = "350ms",    data = 0.350 },
+            { description = "450ms",    data = 0.450 },
+            { description = "500ms",    data = 0.500 },
+            { description = "600ms",    data = 0.600 },
+            { description = "700ms",    data = 0.700 },
+            { description = "800ms",    data = 0.800 },
+            { description = "900ms",    data = 0.900 },
+            { description = "1000ms",   data = 1.000 },
+        },
+        default = 0.300,
+        hover = (
+            "Max amount of time (in milliseconds) that can pass between two mouse up events " ..
+            "for them to be registered as a double click"
+        ),
+    },
+    {
+        name = "doubleClickSearchRadiusTiles",
+        label = "Double click search radius",
+        options = 
+        {
+            { description = "0.5 tiles", data = 0.5 },
+            { description = "1 tile",    data = 1.0 },
+            { description = "1.5 tiles", data = 1.5 },
+            { description = "2.0 tiles", data = 2.0 },
+            { description = "2.5 tiles", data = 2.5 },
+            { description = "3.0 tiles", data = 3.0 },
+            { description = "3.5 tiles", data = 3.5 },
+            { description = "4.0 tiles", data = 4.0 },
+            { description = "4.5 tiles", data = 4.5 },
+            { description = "5.0 tiles", data = 5.0 },
+            { description = "5.5 tiles", data = 5.5 },
+            { description = "6.0 tiles", data = 6.0 },
+            { description = "6.5 tiles", data = 6.5 },
+            { description = "7.0 tiles", data = 7.0 },
+            { description = "7.5 tiles", data = 7.5 },
+            { description = "8.0 tiles", data = 8.0 },
+        },
+        default = 4.5,
+        hover = "When double click happens, how far (in turf tiles) to search for same entity type",
     },
 
     -- Auto behaviors

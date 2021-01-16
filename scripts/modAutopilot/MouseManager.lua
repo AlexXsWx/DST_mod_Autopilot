@@ -12,7 +12,9 @@ local MouseManager_UpdateSession
 local MouseManager_ClearSession
 local MouseManager_OnDown
 local MouseManager_OnUp
-local MouseManager_CherryPick
+local MouseManager_GetTarget
+local MouseManager_DoubleClick
+local MouseManager_DirectClick
 local MouseManager_StartSelectionBox
 local MouseManager_UpdateSelectionBox
 -------------------------
@@ -32,21 +34,26 @@ local MouseManager = Class(
         self._isPlayerValid    = isPlayerValid
         self._startThread      = startThread
         self._applyFn          = applyFn
-        -- these two are set later
-        self._isSelectKeyDown   = nil
-        self._isDeselectKeyDown = nil
         --
+
+        self._config = {
+            isSelectKeyDown   = function() return false end,
+            isDeselectKeyDown = function() return false end,
+            doubleClickMaxTimeSeconds = 0,
+            doubleClickSearchRadiusTiles = 0,
+        }
 
         self._selectionWidget = nil
         self._mouseButtonHandler = nil
 
         self._session = nil
+        self._lastButton = nil
+        self._lastButtonTime = 0
     end
 )
 
-function MouseManager:setKeyDownGetters(isSelectKeyDown, isDeselectKeyDown)
-    self._isSelectKeyDown   = isSelectKeyDown
-    self._isDeselectKeyDown = isDeselectKeyDown
+function MouseManager:configure(config)
+    self._config = config
 end
 
 --
@@ -122,8 +129,8 @@ MouseManager_CreateNewSession = function(self, mouseButton, mousePosition, selec
 end
 
 MouseManager_UpdateSession = function(self)
-    local selecting   = self._isSelectKeyDown   and self._isSelectKeyDown()
-    local deselecting = self._isDeselectKeyDown and self._isDeselectKeyDown()
+    local selecting   = self._config.isSelectKeyDown()
+    local deselecting = self._config.isDeselectKeyDown()
     if (selecting or deselecting) and not (selecting and deselecting) then
         self._session.selecting = selecting or false
     end
@@ -149,8 +156,8 @@ end
 
 MouseManager_OnDown = function(self, mouseButton)
 
-    local selecting   = self._isSelectKeyDown   and self._isSelectKeyDown()
-    local deselecting = self._isDeselectKeyDown and self._isDeselectKeyDown()
+    local selecting   = self._config.isSelectKeyDown()
+    local deselecting = self._config.isDeselectKeyDown()
 
     if not self._session then
         if (selecting or deselecting) and not (selecting and deselecting) then
@@ -182,7 +189,9 @@ MouseManager_OnUp = function(self, mouseButton)
         return
     end
 
-    MouseManager_UpdateSession(self)    
+    MouseManager_UpdateSession(self)
+
+    local nowSeconds = GetTime()
 
     local right = (mouseButton == MOUSEBUTTON_RIGHT)
 
@@ -190,8 +199,21 @@ MouseManager_OnUp = function(self, mouseButton)
         MouseManager_UpdateSelectionBox(self, right)
         self._selectionManager:SubmitPreview(right)
     else
-        MouseManager_CherryPick(self, right)
+        local entity = MouseManager_GetTarget(self, right)
+        if entity then
+            if (
+                self._lastButton == mouseButton and
+                nowSeconds - self._lastButtonTime <= self._config.doubleClickMaxTimeSeconds
+            ) then
+                MouseManager_DoubleClick(self, entity, right)
+            else
+                MouseManager_DirectClick(self, entity, right)
+            end
+        end
     end
+
+    self._lastButton = mouseButton
+    self._lastButtonTime = nowSeconds
 
     local cherrypicking = not self._session.selectionBoxActive
     self._applyFn(
@@ -208,7 +230,7 @@ end
 
 --
 
-MouseManager_CherryPick = function(self, right)
+MouseManager_GetTarget = function(self, right)
     local entities = TheInput:GetAllEntitiesUnderMouse()
 
     for _, entity in ipairs(entities) do
@@ -216,14 +238,49 @@ MouseManager_CherryPick = function(self, right)
             utils.testEntity(entity) and
             self._canActUponEntity(entity, right, true, not self._session.selecting)
         ) then
-            if self._session.selecting then
-                self._selectionManager:ToggleEntitySelection(entity, right)
-                return
-            elseif self._selectionManager:IsEntitySelected(entity) then
-                self._selectionManager:DeselectEntity(entity)
-                return
+            return entity
+        end
+    end
+
+    return nil
+end
+
+MouseManager_DoubleClick = function(self, entity, right)
+
+    if self._config.doubleClickSearchRadiusTiles <= 0 then
+        return
+    end
+
+    local pos = entity:GetPosition()
+    local tileSideSize = 4
+    local entitiesAround = TheSim:FindEntities(
+        pos.x,
+        pos.y,
+        pos.z,
+        self._config.doubleClickSearchRadiusTiles * tileSideSize,
+        nil,
+        constants.UNSELECTABLE_TAGS
+    )
+    if self._session.selecting then
+        for k, v in ipairs(entitiesAround) do
+            if v.prefab == entity.prefab then
+                self._selectionManager:SelectEntity(v, right)
             end
         end
+    else
+        for k, v in ipairs(entitiesAround) do
+            if v.prefab == entity.prefab then
+                self._selectionManager:DeselectEntity(v)
+            end
+        end
+    end
+end
+
+MouseManager_DirectClick = function(self, entity, right)
+    if self._session.selecting then
+        self._selectionManager:ToggleEntitySelection(entity, right)
+    else
+        self._selectionManager:DeselectEntity(entity)
     end
 end
 

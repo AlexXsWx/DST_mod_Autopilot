@@ -170,10 +170,12 @@ Autopilot_initializeMouseManagers = function(self)
 end
 
 Autopilot_reconfigureMouseManager = function(self)
-    self._mouseManager:setKeyDownGetters(
-        self._config.isSelectKeyDown,
-        self._config.isDeselectKeyDown
-    )
+    self._mouseManager:configure({
+        isSelectKeyDown              = self._config.isSelectKeyDown,
+        isDeselectKeyDown            = self._config.isDeselectKeyDown,
+        doubleClickMaxTimeSeconds    = self._config.doubleClickMaxTimeSeconds,
+        doubleClickSearchRadiusTiles = self._config.doubleClickSearchRadiusTiles,
+    })
 end
 
 --

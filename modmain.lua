@@ -84,6 +84,9 @@ local function updateConfig()
 
     config.tryMakeDeployPossible = GetModConfigData("tryMakeDeployPossible") == "yes"
 
+    config.doubleClickMaxTimeSeconds    = GetModConfigData("doubleClickMaxTimeSeconds")
+    config.doubleClickSearchRadiusTiles = GetModConfigData("doubleClickSearchRadiusTiles")
+
     --
 
     local settingsForFilters = {}
@@ -112,11 +115,13 @@ end
 
 local function reconfigureComponent(modautopilot)
     modautopilot:Configure({
-        autoCollect           = config.autoCollect,
-        isSelectKeyDown       = config.isSelectKeyDown,
-        isDeselectKeyDown     = config.isDeselectKeyDown,
-        settingsForFilters    = config.settingsForFilters,
-        tryMakeDeployPossible = config.tryMakeDeployPossible,
+        autoCollect                  = config.autoCollect,
+        isSelectKeyDown              = config.isSelectKeyDown,
+        isDeselectKeyDown            = config.isDeselectKeyDown,
+        settingsForFilters           = config.settingsForFilters,
+        tryMakeDeployPossible        = config.tryMakeDeployPossible,
+        doubleClickMaxTimeSeconds    = config.doubleClickMaxTimeSeconds,
+        doubleClickSearchRadiusTiles = config.doubleClickSearchRadiusTiles,
     })
 end
 

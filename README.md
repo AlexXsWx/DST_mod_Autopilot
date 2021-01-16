@@ -1,6 +1,7 @@
 # Origin
 
 This mod is a rewrite and extending of [ActionQueue(DST)](https://steamcommunity.com/sharedfiles/filedetails/?id=609051112) v1.3.6 by simplex and then xiaoXzzz  
+It is also using some bits of code and ideas from [ActionQueue Reborn](https://steamcommunity.com/sharedfiles/filedetails/?id=1608191708) by eXiGe  
 
 # Description
 
@@ -9,6 +10,7 @@ Queue a sequence of actions (such as chopping, mining, picking up, planting etc)
 # Changes
 
 * Auto scare birds and pick up seeds when planting stuff
+* Shift + double click to select given entity type within some radius
 * Speed up chopping and digging
 * Support werebeaver form
 * Support Wormwood's ability to plant seeds anywhere
