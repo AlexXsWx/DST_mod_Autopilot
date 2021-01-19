@@ -175,7 +175,7 @@ configuration_options = {
             { description = "900ms",    data = 0.900 },
             { description = "1000ms",   data = 1.000 },
         },
-        default = 0.300,
+        default = 0.200,
         hover = (
             "Max amount of time (in milliseconds) that can pass between two mouse up events " ..
             "for them to be registered as a double click"
