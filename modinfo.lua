@@ -40,13 +40,14 @@ configuration_options = {
         options = 
         {
             { description = "None",  data = false           },
+            { description = "Z + X", data = "KEY_Z + KEY_X" },
             { description = "Z",     data = "KEY_Z"         },
             { description = "X",     data = "KEY_X"         },
             { description = "C",     data = "KEY_C"         },
             { description = "V",     data = "KEY_V"         },
             { description = "B",     data = "KEY_B"         },
         },
-        default = "KEY_C",
+        default = "KEY_Z + KEY_X",
         hover = (
             "Allows to change all these options mid-game.\n" .. 
             "Press again to close the configuration screen without applying changes."
