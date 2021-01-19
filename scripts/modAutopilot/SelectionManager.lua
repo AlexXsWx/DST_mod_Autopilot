@@ -38,6 +38,21 @@ function SelectionManager:GetSelectedEntitiesIterator()
     return pairs(self._rightPerSelectedEntity)
 end
 
+function SelectionManager:MakeBackup()
+    local backup = {} 
+    for entity, right in pairs(self._rightPerSelectedEntity) do
+        backup[entity] = right
+    end
+    return backup
+end
+
+function SelectionManager:RestoreFromBackup(backup)
+    self:DeselectAllEntities()
+    for entity, right in pairs(backup) do
+        self:SelectEntity(entity, right)
+    end
+end
+
 local function SelectionManager_updateHighlight(self, entity)
     local highlight = self:shouldKeepHighlight(entity)
     if highlight ~= utils.toboolean(self._highlitEntities[entity]) then

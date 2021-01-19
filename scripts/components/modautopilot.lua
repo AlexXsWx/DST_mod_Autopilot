@@ -41,6 +41,8 @@ local Autopilot = Class(function(self, playerInst)
     -- TODO: change to ever increasing number?
     self._interrupted = true
 
+    self._getUndoCancel = nil
+    self._undoCancel = nil
     self._activeThread = nil
 
     self._startThread = asyncUtils.getStartThread(playerInst)
@@ -84,6 +86,12 @@ end
 
 function Autopilot:Interrupt()
 
+    if self._getUndoCancel then
+        local getUndoCancel = self._getUndoCancel
+        self._getUndoCancel = nil
+        self._undoCancel = getUndoCancel()
+    end
+
     -- FIXME: cancel current action (e.g. running to chop a tree)
 
     self._interrupted = true
@@ -96,6 +104,14 @@ function Autopilot:Interrupt()
     if self._activeThread then
         asyncUtils.cancelThread(self._activeThread)
         self._activeThread = nil
+    end
+end
+
+function Autopilot:UndoInterrupt()
+    if self._undoCancel then
+        local undoCancel = self._undoCancel
+        self._undoCancel = nil
+        undoCancel()
     end
 end
 
@@ -191,6 +207,13 @@ function Autopilot:RepeatRecipe(recipe, skin)
         return
     end
 
+    self._getUndoCancel = function()
+        local function undoCancel()
+            self:RepeatRecipe(recipe, skin)
+        end
+        return undoCancel
+    end
+
     self._activeThread = self._startThread(function()
 
         local playerInst = self._playerInst
@@ -214,11 +237,14 @@ local function isItemValid(item)
     return utils.toboolean(item and item.replica and item.replica.inventoryitem)
 end
 
-Autopilot_applyToDeploy = function(self, selectionBox)
+Autopilot_applyToDeploy = function(self, selectionBox, optGetNextDeployPosition)
 
     if self._activeThread then return end
 
-    local getNextDeployPosition = geoUtils.createPositionIterator(selectionBox)
+    local getNextDeployPosition = (
+        optGetNextDeployPosition or
+        geoUtils.createPositionIterator(selectionBox)
+    )
 
     if (
         getNextDeployPosition == nil or
@@ -233,6 +259,14 @@ Autopilot_applyToDeploy = function(self, selectionBox)
     local activeItemName = initiallyActiveItem.prefab
 
     if not allowedActions.canDeployItem(initiallyActiveItem) then return end
+
+    self._getUndoCancel = function()
+        -- FIXME: re-equip self._playerInst.replica.inventory:GetActiveItem()
+        local function undoCancel()
+            Autopilot_applyToDeploy(self, selectionBox, getNextDeployPosition)
+        end
+        return undoCancel
+    end
 
     self._activeThread = self._startThread(function()
 
@@ -358,6 +392,16 @@ Autopilot_applyToSelection = function(self, cherrypicking)
         not self._playerInst.components.playercontroller
     ) then
         return
+    end
+
+    self._getUndoCancel = function()
+        local selectionBackup = self._selectionManager:MakeBackup()
+        -- FIXME: re-equip self._playerInst.replica.inventory:GetActiveItem()
+        local function undoCancel()
+            self._selectionManager:RestoreFromBackup(selectionBackup)
+            Autopilot_applyToSelection(self, cherrypicking)
+        end
+        return undoCancel
     end
 
     self._activeThread = self._startThread(function()

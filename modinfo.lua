@@ -141,6 +141,18 @@ configuration_options = {
             "Alternative binding."
         ),
     },
+    {
+        name = "keyToUndoInterrupt",
+        label = "Undo interrupt",
+        options = 
+        {
+            { description = "None",   data = false },
+            { description = "Ctrl+Z", data = "KEY_CTRL + KEY_Z" },
+            { description = "Ctrl+X", data = "KEY_CTRL + KEY_X" },
+        },
+        default = "KEY_CTRL + KEY_Z",
+        hover = "Press this button to undo last cancel.",
+    },
 
     -- Double click
 

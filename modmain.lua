@@ -68,6 +68,7 @@ local function updateConfig()
 
     -- bindings
     config.keyToOpenOptions = GetModConfigData("keyToOpenOptions")
+    config.undoKey          = GetModConfigData("keyToUndoInterrupt")
 
     config.autoCollect           = GetModConfigData("autoCollect")           == "yes"
     config.interruptOnMove       = GetModConfigData("interruptOnMove")       == "yes"
@@ -150,6 +151,12 @@ initAutopilot = function(playerInst)
         config,
         "keyToOpenOptions",
         getOpenMenuFn(onConfigChanged)
+    )
+
+    keyBinder:bindConfigurableShortcut(
+        config,
+        "undoKey",
+        function() playerInst.components.modautopilot:UndoInterrupt() end
     )
 end
 
