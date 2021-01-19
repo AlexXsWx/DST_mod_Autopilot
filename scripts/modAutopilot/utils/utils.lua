@@ -21,7 +21,7 @@ function utils.override(obj, method, fn)
     end
 end
 
-function utils.overrideToCancelIf(obj, method, shouldCancelFn)
+function utils.overrideAndCancelIf(obj, method, shouldCancelFn)
     local originalFn = obj[method]
     obj[method] = function(self, ...)
         if not shouldCancelFn(self, ...) then

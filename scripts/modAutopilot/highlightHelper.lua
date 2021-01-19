@@ -5,7 +5,7 @@ local utils = require "modAutopilot/utils/utils"
 local highlightHelper = {}
 
 function highlightHelper.applyUnhighlightOverride(playerInst)
-    utils.overrideToCancelIf(
+    utils.overrideAndCancelIf(
         Highlight,
         "UnHighlight",
         function(self, ...)

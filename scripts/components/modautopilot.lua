@@ -82,7 +82,6 @@ function Autopilot:CanInterrupt()
     return utils.toboolean(self._activeThread)
 end
 
-
 function Autopilot:Interrupt()
 
     -- FIXME: cancel current action (e.g. running to chop a tree)
