@@ -115,31 +115,15 @@ configuration_options = {
         ),
     },
     {
-        name = "keyToInterrupt1",
+        name = "keyToInterrupt",
         label = "Interrupt",
         options = 
         {
             { description = "None",  data = false        },
             { description = "ESC",   data = "KEY_ESCAPE" },
-            { description = "Ctrl",  data = "KEY_CTRL"   },
         },
         default = "KEY_ESCAPE",
         hover = "Press this button to explicitly cancel queued actions.",
-    },
-    {
-        name = "keyToInterrupt2",
-        label = "Interrupt",
-        options = 
-        {
-            { description = "None",  data = false        },
-            { description = "ESC",   data = "KEY_ESCAPE" },
-            { description = "Ctrl",  data = "KEY_CTRL"   },
-        },
-        default = false,
-        hover = (
-            "Press this button to explicitly cancel queued actions.\n" ..
-            "Alternative binding."
-        ),
     },
     {
         name = "keyToUndoInterrupt",

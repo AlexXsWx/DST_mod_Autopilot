@@ -62,8 +62,7 @@ local function updateConfig()
     )
     -- FIXME: this is not really a modifier, but Ctrl can't be used for addKeyDownHandler
     config.isInterruptKeyDown = inputHelpers.createShortcutsTester(
-        GetModConfigData("keyToInterrupt1"),
-        GetModConfigData("keyToInterrupt2")
+        GetModConfigData("keyToInterrupt")
     )
 
     -- bindings
