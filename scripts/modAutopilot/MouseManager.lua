@@ -263,7 +263,11 @@ MouseManager_DoubleClick = function(self, entity, right)
     )
     if self._session.selecting then
         for k, v in ipairs(entitiesAround) do
-            if v.prefab == entity.prefab then
+            if (
+                v.prefab == entity.prefab and
+                utils.testEntity(v) and
+                self._canActUponEntity(v, right, true, false)
+            ) then
                 self._selectionManager:SelectEntity(v, right)
             end
         end
