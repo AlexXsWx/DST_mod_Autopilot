@@ -126,16 +126,17 @@ local function reconfigureComponent(modautopilot)
 end
 
 initAutopilot = function(playerInst)
-    logger.logDebug("initAutopilot")
-
-    highlightHelper.applyUnhighlightOverride(playerInst)
-
-    updateConfig()
 
     if playerInst.components.modautopilot then
         logger.logWarning("modautopilot component already exists")
         return
     end
+
+    logger.logDebug("initAutopilot")
+
+    highlightHelper.applyUnhighlightOverride(playerInst)
+
+    updateConfig()
 
     playerInst:AddComponent("modautopilot")
     reconfigureComponent(playerInst.components.modautopilot)
