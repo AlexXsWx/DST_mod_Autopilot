@@ -30,9 +30,27 @@ local Autopilot = Class(function(self, playerInst)
         isDeselectKeyDown = nil,
         settingsForFilters = {},
         tryMakeDeployPossible = true,
+        doubleClickMaxTimeSeconds = 0,
+        doubleClickSearchRadiusTiles = 0,
+        doubleClickKeepSearching = false,
     }
 
     --
+
+    self._canActUponEntity = function(entity, right, cherrypicking, deselecting)
+        return utils.toboolean(
+            getAction(
+                {
+                    playerInst = self._playerInst,
+                    target = entity,
+                    right = right,
+                    cherrypicking = cherrypicking,
+                    deselecting = deselecting,
+                },
+                self._config.settingsForFilters
+            )
+        )
+    end
 
     self._selectionManager = SelectionManager()
 
@@ -146,21 +164,6 @@ Autopilot_initializeMouseManagers = function(self)
         return self._playerInst:IsValid()
     end
 
-    local canActUponEntity = function(entity, right, cherrypicking, deselecting)
-        return utils.toboolean(
-            getAction(
-                {
-                    playerInst = self._playerInst,
-                    target = entity,
-                    right = right,
-                    cherrypicking = cherrypicking,
-                    deselecting = deselecting,
-                },
-                self._config.settingsForFilters
-            )
-        )
-    end
-
     local apply = function(optSelectionBox, right, cherrypicking)
         if (
             -- TODO: check why originally it was checking for not cherry picking
@@ -176,7 +179,7 @@ Autopilot_initializeMouseManagers = function(self)
 
     self._mouseManager = MouseManager(
         self._selectionManager,
-        canActUponEntity,
+        self._canActUponEntity,
         isPlayerValid,
         self._startThread,
         apply
@@ -190,6 +193,7 @@ Autopilot_reconfigureMouseManager = function(self)
         isDeselectKeyDown            = self._config.isDeselectKeyDown,
         doubleClickMaxTimeSeconds    = self._config.doubleClickMaxTimeSeconds,
         doubleClickSearchRadiusTiles = self._config.doubleClickSearchRadiusTiles,
+        doubleClickKeepSearching     = self._config.doubleClickKeepSearching,
     })
 end
 
@@ -399,6 +403,13 @@ Autopilot_applyToSelection = function(self, cherrypicking)
         -- FIXME: re-equip self._playerInst.replica.inventory:GetActiveItem()
         local function undoCancel()
             self._selectionManager:RestoreFromBackup(selectionBackup)
+            if self._config.doubleClickKeepSearching then
+                self._selectionManager:ExpandSelection(
+                    self._playerInst:GetPosition(),
+                    self._config.doubleClickSearchRadiusTiles,
+                    self._canActUponEntity
+                )
+            end
             Autopilot_applyToSelection(self, cherrypicking)
         end
         return undoCancel
@@ -416,11 +427,14 @@ Autopilot_applyToSelection = function(self, cherrypicking)
             playerInst.components.playercontroller
         )
 
-        while (
-            not self._interrupted and
-            playerInst:IsValid() and
-            not self._selectionManager:IsSelectionEmpty()
-        ) do
+        while not self._interrupted and playerInst:IsValid() do
+
+            if self._selectionManager:IsSelectionEmpty() then
+                -- TODO: sleep, expand selection and try just one more time
+                -- Don't forget to check for interrupt
+                -- TODO: re-equip active item?
+                break
+            end
 
             local target
             local minDistSq = nil
@@ -481,6 +495,13 @@ Autopilot_applyToSelection = function(self, cherrypicking)
                     Autopilot_autoCollect(self, targetPosition)
                 end
 
+                if self._config.doubleClickKeepSearching then
+                    self._selectionManager:ExpandSelection(
+                        playerInst:GetPosition(),
+                        self._config.doubleClickSearchRadiusTiles,
+                        self._canActUponEntity
+                    )
+                end
             else
                 self._selectionManager:DeselectEntity(target)
             end

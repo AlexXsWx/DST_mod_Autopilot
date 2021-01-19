@@ -202,6 +202,17 @@ configuration_options = {
         default = 4.5,
         hover = "When double click happens, how far (in turf tiles) to search for same entity type",
     },
+    {
+        name = "doubleClickKeepSearching",
+        label = "Keep search ongoing",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "yes",
+        hover = "Should continuosly search for same entities as the double clicked ones?",
+    },
 
     -- Auto behaviors
 

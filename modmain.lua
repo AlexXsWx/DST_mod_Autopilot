@@ -75,6 +75,7 @@ local function updateConfig()
 
     config.doubleClickMaxTimeSeconds    = GetModConfigData("doubleClickMaxTimeSeconds")
     config.doubleClickSearchRadiusTiles = GetModConfigData("doubleClickSearchRadiusTiles")
+    config.doubleClickKeepSearching     = GetModConfigData("doubleClickKeepSearching") == "yes"
 
     --
 
@@ -111,6 +112,7 @@ local function reconfigureComponent(modautopilot)
         tryMakeDeployPossible        = config.tryMakeDeployPossible,
         doubleClickMaxTimeSeconds    = config.doubleClickMaxTimeSeconds,
         doubleClickSearchRadiusTiles = config.doubleClickSearchRadiusTiles,
+        doubleClickKeepSearching     = config.doubleClickKeepSearching,
     })
 end
 
