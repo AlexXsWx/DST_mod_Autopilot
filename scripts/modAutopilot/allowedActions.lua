@@ -59,7 +59,7 @@ local isActionAllowedMap = {
     -- talking to plants
     [ACTIONS.INTERACT_WITH] = allowIfRight,
     [ACTIONS.ASSESSPLANTHAPPINESS] = function(context, config)
-        return not context.right and context.cherrypicking
+        return not context.right and (context.cherrypicking or context.deselecting)
     end,
 
     [ACTIONS.HAMMER] = allowIfRight,
