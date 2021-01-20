@@ -95,6 +95,7 @@ local function updateConfig()
         "pickFlintMode",
         "pickTreeBlossomMode",
         "digUpSeeds",
+        "allowAttack",
     }
     for _, pickMode in pairs(pickModes) do
         settingsForFilters[pickMode] = GetModConfigData(pickMode)

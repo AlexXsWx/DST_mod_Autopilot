@@ -461,6 +461,17 @@ configuration_options = {
         default = "yes",
         hover = "Should werebeaver spend time on digging up tree stumps?",
     },
+    {
+        name = "allowAttack",
+        label = "Allow attack",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+        },
+        default = "no",
+        hover = "Should allow to queue attack actions?",
+    },
 
     -- debug
 

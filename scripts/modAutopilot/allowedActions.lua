@@ -34,6 +34,13 @@ local allowedDeployPrefabs = {
 
 local isActionAllowedMap = {
 
+    [ACTIONS.ATTACK] = function(context, config)
+        local cherrypickingOrDeselecting = context.cherrypicking or context.deselecting
+        return (
+            not context.right and
+            not testCherryPick(config.allowAttack, cherrypickingOrDeselecting)
+        )
+    end,
     [ACTIONS.TAKEITEM]    = allow,
     [ACTIONS.REPAIR]      = allow,
     [ACTIONS.USEITEM]     = allow,
