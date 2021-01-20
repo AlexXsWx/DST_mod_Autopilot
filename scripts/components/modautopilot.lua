@@ -30,9 +30,27 @@ local Autopilot = Class(function(self, playerInst)
         isDeselectKeyDown = nil,
         settingsForFilters = {},
         tryMakeDeployPossible = true,
+        doubleClickMaxTimeSeconds = 0,
+        doubleClickSearchRadiusTiles = 0,
+        doubleClickKeepSearching = false,
     }
 
     --
+
+    self._canActUponEntity = function(entity, right, cherrypicking, deselecting)
+        return utils.toboolean(
+            getAction(
+                {
+                    playerInst = self._playerInst,
+                    target = entity,
+                    right = right,
+                    cherrypicking = cherrypicking,
+                    deselecting = deselecting,
+                },
+                self._config.settingsForFilters
+            )
+        )
+    end
 
     self._selectionManager = SelectionManager()
 
@@ -41,6 +59,8 @@ local Autopilot = Class(function(self, playerInst)
     -- TODO: change to ever increasing number?
     self._interrupted = true
 
+    self._getUndoCancel = nil
+    self._undoCancel = nil
     self._activeThread = nil
 
     self._startThread = asyncUtils.getStartThread(playerInst)
@@ -82,8 +102,13 @@ function Autopilot:CanInterrupt()
     return utils.toboolean(self._activeThread)
 end
 
-
 function Autopilot:Interrupt()
+
+    if self._getUndoCancel then
+        local getUndoCancel = self._getUndoCancel
+        self._getUndoCancel = nil
+        self._undoCancel = getUndoCancel()
+    end
 
     -- FIXME: cancel current action (e.g. running to chop a tree)
 
@@ -97,6 +122,14 @@ function Autopilot:Interrupt()
     if self._activeThread then
         asyncUtils.cancelThread(self._activeThread)
         self._activeThread = nil
+    end
+end
+
+function Autopilot:UndoInterrupt()
+    if self._undoCancel then
+        local undoCancel = self._undoCancel
+        self._undoCancel = nil
+        undoCancel()
     end
 end
 
@@ -131,21 +164,6 @@ Autopilot_initializeMouseManagers = function(self)
         return self._playerInst:IsValid()
     end
 
-    local canActUponEntity = function(entity, right, cherrypicking, deselecting)
-        return utils.toboolean(
-            getAction(
-                {
-                    playerInst = self._playerInst,
-                    target = entity,
-                    right = right,
-                    cherrypicking = cherrypicking,
-                    deselecting = deselecting,
-                },
-                self._config.settingsForFilters
-            )
-        )
-    end
-
     local apply = function(optSelectionBox, right, cherrypicking)
         if (
             -- TODO: check why originally it was checking for not cherry picking
@@ -161,7 +179,7 @@ Autopilot_initializeMouseManagers = function(self)
 
     self._mouseManager = MouseManager(
         self._selectionManager,
-        canActUponEntity,
+        self._canActUponEntity,
         isPlayerValid,
         self._startThread,
         apply
@@ -175,6 +193,7 @@ Autopilot_reconfigureMouseManager = function(self)
         isDeselectKeyDown            = self._config.isDeselectKeyDown,
         doubleClickMaxTimeSeconds    = self._config.doubleClickMaxTimeSeconds,
         doubleClickSearchRadiusTiles = self._config.doubleClickSearchRadiusTiles,
+        doubleClickKeepSearching     = self._config.doubleClickKeepSearching,
     })
 end
 
@@ -190,6 +209,13 @@ function Autopilot:RepeatRecipe(recipe, skin)
     if not self._playerInst.replica.builder then
         logger.logError("Unable to repeat recipe: missing builder")
         return
+    end
+
+    self._getUndoCancel = function()
+        local function undoCancel()
+            self:RepeatRecipe(recipe, skin)
+        end
+        return undoCancel
     end
 
     self._activeThread = self._startThread(function()
@@ -215,11 +241,14 @@ local function isItemValid(item)
     return utils.toboolean(item and item.replica and item.replica.inventoryitem)
 end
 
-Autopilot_applyToDeploy = function(self, selectionBox)
+Autopilot_applyToDeploy = function(self, selectionBox, optGetNextDeployPosition)
 
     if self._activeThread then return end
 
-    local getNextDeployPosition = geoUtils.createPositionIterator(selectionBox)
+    local getNextDeployPosition = (
+        optGetNextDeployPosition or
+        geoUtils.createPositionIterator(selectionBox)
+    )
 
     if (
         getNextDeployPosition == nil or
@@ -234,6 +263,14 @@ Autopilot_applyToDeploy = function(self, selectionBox)
     local activeItemName = initiallyActiveItem.prefab
 
     if not allowedActions.canDeployItem(initiallyActiveItem) then return end
+
+    self._getUndoCancel = function()
+        -- FIXME: re-equip self._playerInst.replica.inventory:GetActiveItem()
+        local function undoCancel()
+            Autopilot_applyToDeploy(self, selectionBox, getNextDeployPosition)
+        end
+        return undoCancel
+    end
 
     self._activeThread = self._startThread(function()
 
@@ -361,6 +398,23 @@ Autopilot_applyToSelection = function(self, cherrypicking)
         return
     end
 
+    self._getUndoCancel = function()
+        local selectionBackup = self._selectionManager:MakeBackup()
+        -- FIXME: re-equip self._playerInst.replica.inventory:GetActiveItem()
+        local function undoCancel()
+            self._selectionManager:RestoreFromBackup(selectionBackup)
+            if self._config.doubleClickKeepSearching then
+                self._selectionManager:ExpandSelection(
+                    self._playerInst:GetPosition(),
+                    self._config.doubleClickSearchRadiusTiles,
+                    self._canActUponEntity
+                )
+            end
+            Autopilot_applyToSelection(self, cherrypicking)
+        end
+        return undoCancel
+    end
+
     self._activeThread = self._startThread(function()
 
         local playerInst = self._playerInst
@@ -373,11 +427,14 @@ Autopilot_applyToSelection = function(self, cherrypicking)
             playerInst.components.playercontroller
         )
 
-        while (
-            not self._interrupted and
-            playerInst:IsValid() and
-            not self._selectionManager:IsSelectionEmpty()
-        ) do
+        while not self._interrupted and playerInst:IsValid() do
+
+            if self._selectionManager:IsSelectionEmpty() then
+                -- TODO: sleep, expand selection and try just one more time
+                -- Don't forget to check for interrupt
+                -- TODO: re-equip active item?
+                break
+            end
 
             local target
             local minDistSq = nil
@@ -438,6 +495,13 @@ Autopilot_applyToSelection = function(self, cherrypicking)
                     Autopilot_autoCollect(self, targetPosition)
                 end
 
+                if self._config.doubleClickKeepSearching then
+                    self._selectionManager:ExpandSelection(
+                        playerInst:GetPosition(),
+                        self._config.doubleClickSearchRadiusTiles,
+                        self._canActUponEntity
+                    )
+                end
             else
                 self._selectionManager:DeselectEntity(target)
             end

@@ -41,6 +41,7 @@ local MouseManager = Class(
             isDeselectKeyDown = function() return false end,
             doubleClickMaxTimeSeconds = 0,
             doubleClickSearchRadiusTiles = 0,
+            doubleClickKeepSearching = false,
         }
 
         self._selectionWidget = nil
@@ -202,6 +203,7 @@ MouseManager_OnUp = function(self, mouseButton)
         local entity = MouseManager_GetTarget(self, right)
         if entity then
             if (
+                -- FIXME: test distance
                 self._lastButton == mouseButton and
                 nowSeconds - self._lastButtonTime <= self._config.doubleClickMaxTimeSeconds
             ) then
@@ -263,15 +265,27 @@ MouseManager_DoubleClick = function(self, entity, right)
     )
     if self._session.selecting then
         for k, v in ipairs(entitiesAround) do
-            if v.prefab == entity.prefab then
+            if (
+                utils.arePrefabsEqual(v.prefab, entity.prefab) and
+                utils.testEntity(v) and
+                self._canActUponEntity(v, right, true, false)
+            ) then
                 self._selectionManager:SelectEntity(v, right)
             end
         end
     else
         for k, v in ipairs(entitiesAround) do
-            if v.prefab == entity.prefab then
+            if utils.arePrefabsEqual(v.prefab, entity.prefab) then
                 self._selectionManager:DeselectEntity(v)
             end
+        end
+    end
+
+    if self._config.doubleClickKeepSearching then
+        if self._session.selecting then
+            self._selectionManager:SelectPrefabName(entity.prefab, right)
+        else
+            self._selectionManager:DeselectPrefabName(entity.prefab, right)
         end
     end
 end

@@ -39,53 +39,54 @@ configuration_options = {
         label = "Toggle this menu",
         options = 
         {
-            { description = "None",  data = "none" },
-            { description = "Z",     data = "Z"    },
-            { description = "X",     data = "X"    },
-            { description = "C",     data = "C"    },
-            { description = "V",     data = "V"    },
-            { description = "B",     data = "B"    },
+            { description = "None",  data = false           },
+            { description = "Z + X", data = "KEY_Z + KEY_X" },
+            { description = "Z",     data = "KEY_Z"         },
+            { description = "X",     data = "KEY_X"         },
+            { description = "C",     data = "KEY_C"         },
+            { description = "V",     data = "KEY_V"         },
+            { description = "B",     data = "KEY_B"         },
         },
-        default = "C",
+        default = "KEY_Z + KEY_X",
         hover = (
             "Allows to change all these options mid-game.\n" .. 
             "Press again to close the configuration screen without applying changes."
         ),
     },
     {
-        name = "keyToQueueActions",
+        name = "keyToQueueActions1",
         label = "Select target(s) / repeat action",
         options = 
         {
-            { description = "Shift", data = "Shift" },
-            { description = "Alt",   data = "Alt"   },
-            { description = "Z",     data = "Z"     },
-            { description = "X",     data = "X"     },
-            { description = "C",     data = "C"     },
-            { description = "V",     data = "V"     },
-            { description = "B",     data = "B"     },
+            { description = "Shift", data = "KEY_SHIFT" },
+            { description = "Alt",   data = "KEY_ALT"   },
+            { description = "Z",     data = "KEY_Z"     },
+            { description = "X",     data = "KEY_X"     },
+            { description = "C",     data = "KEY_C"     },
+            { description = "V",     data = "KEY_V"     },
+            { description = "B",     data = "KEY_B"     },
         },
-        default = "Shift",
+        default = "KEY_SHIFT",
         hover = (
             "Hold this button while clicking or selecting area with left or right mouse button " ..
             "to queue actions."
         ),
     },
     {
-        name = "altKeyToQueueActions",
+        name = "keyToQueueActions2",
         label = "Select target(s) / repeat action",
         options = 
         {
-            { description = "None",  data = "none"  },
-            { description = "Shift", data = "Shift" },
-            { description = "Alt",   data = "Alt"   },
-            { description = "Z",     data = "Z"     },
-            { description = "X",     data = "X"     },
-            { description = "C",     data = "C"     },
-            { description = "V",     data = "V"     },
-            { description = "B",     data = "B"     },
+            { description = "None",  data = false       },
+            { description = "Shift", data = "KEY_SHIFT" },
+            { description = "Alt",   data = "KEY_ALT"   },
+            { description = "Z",     data = "KEY_Z"     },
+            { description = "X",     data = "KEY_X"     },
+            { description = "C",     data = "KEY_C"     },
+            { description = "V",     data = "KEY_V"     },
+            { description = "B",     data = "KEY_B"     },
         },
-        default = "Z",
+        default = "KEY_Z",
         hover = (
             "Hold this button while clicking or selecting area with left or right mouse button " ..
             "to queue actions. " ..
@@ -97,17 +98,17 @@ configuration_options = {
         label = "Deselect target(s)",
         options = 
         {
-            { description = "None",  data = "none" },
-            { description = "ESC",   data = "ESC"  },
-            { description = "Ctrl",  data = "Ctrl" },
-            { description = "Alt",   data = "Alt"  },
-            { description = "Z",     data = "Z"    },
-            { description = "X",     data = "X"    },
-            { description = "C",     data = "C"    },
-            { description = "V",     data = "V"    },
-            { description = "B",     data = "B"    },
+            { description = "None",  data = false        },
+            { description = "ESC",   data = "KEY_ESCAPE" },
+            { description = "Ctrl",  data = "KEY_CTRL"   },
+            { description = "Alt",   data = "KEY_ALT"    },
+            { description = "Z",     data = "KEY_Z"      },
+            { description = "X",     data = "KEY_X"      },
+            { description = "C",     data = "KEY_C"      },
+            { description = "V",     data = "KEY_V"      },
+            { description = "B",     data = "KEY_B"      },
         },
-        default = "X",
+        default = "KEY_X",
         hover = (
             "Hold this button while clicking or selecting area with left or right mouse button " ..
             "to cancel all or some of previously queued actions."
@@ -118,27 +119,23 @@ configuration_options = {
         label = "Interrupt",
         options = 
         {
-            { description = "None",  data = "none" },
-            { description = "ESC",   data = "ESC"  },
-            { description = "Ctrl",  data = "Ctrl" },
+            { description = "None",  data = false        },
+            { description = "ESC",   data = "KEY_ESCAPE" },
         },
-        default = "ESC",
+        default = "KEY_ESCAPE",
         hover = "Press this button to explicitly cancel queued actions.",
     },
     {
-        name = "altKeyToInterrupt",
-        label = "Interrupt",
+        name = "keyToUndoInterrupt",
+        label = "Undo interrupt",
         options = 
         {
-            { description = "None",  data = "none" },
-            { description = "ESC",   data = "ESC"  },
-            { description = "Ctrl",  data = "Ctrl" },
+            { description = "None",   data = false },
+            { description = "Ctrl+Z", data = "KEY_CTRL + KEY_Z" },
+            { description = "Ctrl+X", data = "KEY_CTRL + KEY_X" },
         },
-        default = "none",
-        hover = (
-            "Press this button to explicitly cancel queued actions.\n" ..
-            "Alternative binding."
-        ),
+        default = "KEY_CTRL + KEY_Z",
+        hover = "Press this button to undo last cancel.",
     },
 
     -- Double click
@@ -174,7 +171,7 @@ configuration_options = {
             { description = "900ms",    data = 0.900 },
             { description = "1000ms",   data = 1.000 },
         },
-        default = 0.300,
+        default = 0.200,
         hover = (
             "Max amount of time (in milliseconds) that can pass between two mouse up events " ..
             "for them to be registered as a double click"
@@ -204,6 +201,17 @@ configuration_options = {
         },
         default = 4.5,
         hover = "When double click happens, how far (in turf tiles) to search for same entity type",
+    },
+    {
+        name = "doubleClickKeepSearching",
+        label = "Keep search ongoing",
+        options = 
+        {
+            { description = "no",  data = "no"  },
+            { description = "yes", data = "yes" },
+        },
+        default = "yes",
+        hover = "Should continuosly search for same entities as the double clicked ones?",
     },
 
     -- Auto behaviors
@@ -452,6 +460,17 @@ configuration_options = {
         },
         default = "yes",
         hover = "Should werebeaver spend time on digging up tree stumps?",
+    },
+    {
+        name = "allowAttack",
+        label = "Allow attack",
+        options = 
+        {
+            { description = "no",               data = "no"             },
+            { description = "Cherry pick only", data = "cherryPickOnly" },
+        },
+        default = "no",
+        hover = "Should allow to queue attack actions?",
     },
 
     -- debug

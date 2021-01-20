@@ -21,7 +21,7 @@ function utils.override(obj, method, fn)
     end
 end
 
-function utils.overrideToCancelIf(obj, method, shouldCancelFn)
+function utils.overrideAndCancelIf(obj, method, shouldCancelFn)
     local originalFn = obj[method]
     obj[method] = function(self, ...)
         if not shouldCancelFn(self, ...) then
@@ -63,6 +63,34 @@ end
 
 --
 
+utils.PREFAB_GROUPS = {
+    {
+        ["stalker_minion"]  = true,
+        ["stalker_minion1"] = true,
+        ["stalker_minion2"] = true,
+    },
+    {
+        ["deer_antler"]  = true,
+        ["deer_antler1"] = true,
+        ["deer_antler2"] = true,
+        ["deer_antler3"] = true,
+    },
+}
+
+function utils.arePrefabsEqual(prefabNameA, prefabNameB)
+    if prefabNameA == prefabNameB then
+        return true
+    end
+    for _, group in pairs(utils.PREFAB_GROUPS) do
+        if group[prefabNameA] and group[prefabNameB] then
+            return true
+        end
+    end
+    return false
+end
+
+--
+
 function utils.getItemFromInventory(inventory, prefabName)
 
     local itemContainer = nil
@@ -82,7 +110,7 @@ function utils.getItemFromInventory(inventory, prefabName)
     end
 
     for slot, v in pairs(itemContainer:GetItems() or {}) do
-        if slot and v.prefab == prefabName then
+        if slot and utils.arePrefabsEqual(v.prefab, prefabName) then
             itemContainer:TakeActiveItemFromAllOfSlot(slot)
             return inventory:GetActiveItem()
         end

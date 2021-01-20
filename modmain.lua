@@ -1,25 +1,28 @@
 local ModConfigutationScreen = require("screens/redux/modconfigurationscreen")
 
-local keyMap           = require "modAutopilot/input/keyMap"
-local logger           = require "modAutopilot/utils/logger"
-local utils            = require "modAutopilot/utils/utils"
-local asyncUtils       = require "modAutopilot/utils/asyncUtils"
-local highlightHelper  = require "modAutopilot/highlightHelper"
+local inputHelpers    = require "modAutopilot/input/inputHelpers"
+local KeyBinder       = require "modAutopilot/input/KeyBinder"
+local logger          = require "modAutopilot/utils/logger"
+local utils           = require "modAutopilot/utils/utils"
+local asyncUtils      = require "modAutopilot/utils/asyncUtils"
+local highlightHelper = require "modAutopilot/highlightHelper"
 
 Assets = {
     Asset("ATLAS", "images/selection_square.xml"),
     Asset("IMAGE", "images/selection_square.tex"),
 }
 
+_G = GLOBAL
 local TheInput = GLOBAL.TheInput
-local assert = GLOBAL.assert
 
 -- forward declaration --
 local onPlayerPostInit
 local initAutopilot
-local updateInputHandler
-local bindOpenMenuButton
+local bindConfigurableShortcut
+local changeOnControl
+local getOpenMenuFn
 local enableAutoRepeatCraft
+local isDefaultScreen
 -------------------------
 
 local config = {}
@@ -49,43 +52,30 @@ local function updateConfig()
         GetModConfigData("logDebugEnabled") == "yes"
     )
 
-    config.keyToOpenOptions = keyMap[GetModConfigData("keyToOpenOptions")] or nil
+    -- modifiers
+    config.isSelectKeyDown = inputHelpers.createShortcutsTester(
+        GetModConfigData("keyToQueueActions1"),
+        GetModConfigData("keyToQueueActions2")
+    )
+    config.isDeselectKeyDown = inputHelpers.createShortcutsTester(
+        GetModConfigData("keyToDeselect")
+    )
+    -- FIXME: this is not really a modifier, but Ctrl can't be used for addKeyDownHandler
+    config.isInterruptKeyDown = inputHelpers.createShortcutsTester(
+        GetModConfigData("keyToInterrupt")
+    )
 
-    local keyToQueueActions    = assert(keyMap[GetModConfigData("keyToQueueActions")])
-    local altKeyToQueueActions = keyMap[GetModConfigData("altKeyToQueueActions")] or nil
-    local optKeyToDeselect     = keyMap[GetModConfigData("keyToDeselect")] or nil
-    local optKeyToInterrupt    = keyMap[GetModConfigData("keyToInterrupt")] or nil
-    local altKeyToInterrupt    = keyMap[GetModConfigData("altKeyToInterrupt")] or nil
+    -- bindings
+    config.keyToOpenOptions = GetModConfigData("keyToOpenOptions")
+    config.undoKey          = GetModConfigData("keyToUndoInterrupt")
 
-    local function isSelectKeyDown()
-        return (
-            TheInput:IsKeyDown(keyToQueueActions) or
-            altKeyToQueueActions and TheInput:IsKeyDown(altKeyToQueueActions)
-        )
-    end
-
-    local function isDeselectKeyDown()
-        return optKeyToDeselect and TheInput:IsKeyDown(optKeyToDeselect)
-    end
-
-    local function isInterruptKeyDown()
-        return (
-            optKeyToInterrupt and TheInput:IsKeyDown(optKeyToInterrupt) or
-            altKeyToInterrupt and TheInput:IsKeyDown(altKeyToInterrupt)
-        )
-    end
-
-    config.isSelectKeyDown     = isSelectKeyDown
-    config.isDeselectKeyDown   = isDeselectKeyDown
-    config.isInterruptKeyDown  = isInterruptKeyDown
-
-    config.autoCollect     = GetModConfigData("autoCollect") == "yes"
-    config.interruptOnMove = GetModConfigData("interruptOnMove") == "yes"
-
+    config.autoCollect           = GetModConfigData("autoCollect")           == "yes"
+    config.interruptOnMove       = GetModConfigData("interruptOnMove")       == "yes"
     config.tryMakeDeployPossible = GetModConfigData("tryMakeDeployPossible") == "yes"
 
     config.doubleClickMaxTimeSeconds    = GetModConfigData("doubleClickMaxTimeSeconds")
     config.doubleClickSearchRadiusTiles = GetModConfigData("doubleClickSearchRadiusTiles")
+    config.doubleClickKeepSearching     = GetModConfigData("doubleClickKeepSearching") == "yes"
 
     --
 
@@ -105,6 +95,7 @@ local function updateConfig()
         "pickFlintMode",
         "pickTreeBlossomMode",
         "digUpSeeds",
+        "allowAttack",
     }
     for _, pickMode in pairs(pickModes) do
         settingsForFilters[pickMode] = GetModConfigData(pickMode)
@@ -122,61 +113,77 @@ local function reconfigureComponent(modautopilot)
         tryMakeDeployPossible        = config.tryMakeDeployPossible,
         doubleClickMaxTimeSeconds    = config.doubleClickMaxTimeSeconds,
         doubleClickSearchRadiusTiles = config.doubleClickSearchRadiusTiles,
+        doubleClickKeepSearching     = config.doubleClickKeepSearching,
     })
 end
 
 initAutopilot = function(playerInst)
-    logger.logDebug("initAutopilot")
-
-    highlightHelper.applyUnhighlightOverride(playerInst)
-
-    updateConfig()
 
     if playerInst.components.modautopilot then
         logger.logWarning("modautopilot component already exists")
         return
     end
 
+    logger.logDebug("initAutopilot")
+
+    highlightHelper.applyUnhighlightOverride(playerInst)
+
+    updateConfig()
+
     playerInst:AddComponent("modautopilot")
     reconfigureComponent(playerInst.components.modautopilot)
 
-    updateInputHandler(playerInst)
-    bindOpenMenuButton(function()
+    enableAutoRepeatCraft(playerInst)
+
+    -- Input
+
+    changeOnControl(playerInst)
+
+    -- Key bindings
+
+    local keyBinder = KeyBinder()
+
+    local function onConfigChanged()
         updateConfig()
         reconfigureComponent(playerInst.components.modautopilot)
-    end)
-    enableAutoRepeatCraft(playerInst)
+        keyBinder:update()
+    end
+
+    keyBinder:bindConfigurableShortcut(
+        config,
+        "keyToOpenOptions",
+        getOpenMenuFn(onConfigChanged)
+    )
+
+    keyBinder:bindConfigurableShortcut(
+        config,
+        "undoKey",
+        function() playerInst.components.modautopilot:UndoInterrupt() end
+    )
 end
 
 --
 
--- We want to make sure that chatting, or being in menus, etc, doesn't toggle
-local function getActiveScreenName()
-    local screen = TheFrontEnd:GetActiveScreen()
-    return screen and screen.name or ""
-end
+changeOnControl = function(playerInst)
 
-local function isDefaultScreen()
-    return getActiveScreenName():find("HUD") ~= nil
-end
-
---
-
-updateInputHandler = function(playerInst)
-    utils.overrideToCancelIf(
+    utils.overrideAndCancelIf(
         playerInst.components.playercontroller,
         "OnControl",
-        function(self, ...)
+        function(self, control, down)
+
+            -- Behave as usual in screens like map and etc
             if not isDefaultScreen() then
                 return false
             end
 
+            -- Prevent default action if user is doing autopilot stuff
             if config.isSelectKeyDown() or config.isDeselectKeyDown() then
                 return true
             end
 
             local modautopilot = playerInst.components.modautopilot
 
+            -- Check interrupt key
             if (
                 config.isInterruptKeyDown() and
                 modautopilot:CanInterrupt()
@@ -185,6 +192,7 @@ updateInputHandler = function(playerInst)
                 return true
             end
 
+            -- Interrupt autopilot if user is doing non-autopilot stuff
             if (
                 config.interruptOnMove and (
                     TheInput:IsControlPressed(GLOBAL.CONTROL_MOVE_UP) or
@@ -206,32 +214,12 @@ updateInputHandler = function(playerInst)
     )
 end
 
-bindOpenMenuButton = function(onConfigChanged)
-    local keyHandler = nil
-
+getOpenMenuFn = function(onConfigChanged)
     -- forward declaration --
-    local tryUnbindOpenMenuButton
-    local tryBindOpenMenuButton
     local onOpenMenuButton
     local openModOptionsScreen
     local dismissModOptionsScreen
     -------------------------
-
-    tryUnbindOpenMenuButton = function()
-        if keyHandler then
-            TheInput.onkeydown:RemoveHandler(keyHandler)
-            keyHandler = nil
-        end
-    end
-
-    tryBindOpenMenuButton = function()
-        if config.keyToOpenOptions ~= nil then
-            keyHandler = TheInput.onkeydown:AddEventHandler(
-                config.keyToOpenOptions,
-                onOpenMenuButton
-            )
-        end
-    end
 
     local scrollViewOffset = 0
     local activeModConfigurationScreen = nil
@@ -244,12 +232,6 @@ bindOpenMenuButton = function(onConfigChanged)
         elseif isDefaultScreen() then
             activeModConfigurationScreen = openModOptionsScreen({
                 scrollViewOffset = scrollViewOffset,
-                onConfigChanged = function()
-                    onConfigChanged()
-                    -- Re-add handler in case button changed
-                    tryUnbindOpenMenuButton()
-                    tryBindOpenMenuButton()
-                end,
                 onDestroy = function()
                     scrollViewOffset = (
                         activeModConfigurationScreen.options_scroll_list.current_scroll_pos
@@ -263,37 +245,42 @@ bindOpenMenuButton = function(onConfigChanged)
     openModOptionsScreen = function(params)
         local screen = ModConfigutationScreen(modname, true)
 
+        -- Small UX/QoL improvement
         screen.options_scroll_list:ScrollToDataIndex(params.scrollViewOffset)
 
+        -- Install a hook to know when we need to re-parse the config
         utils.override(screen, "Apply", function(self, originalFn, ...)
             local willApplyChanges = self:IsDirty()
             local result = originalFn(self, ...)
             if willApplyChanges then
-                params.onConfigChanged()
+                onConfigChanged()
             end
             return result
         end)
 
+        -- Install a hook to know when this popup is about to be closed
         utils.override(screen, "OnDestroy", function(self, originalFn, ...)
             params.onDestroy()
             return originalFn(self, ...)
         end)
 
+        -- Present the popup
         TheFrontEnd:PushScreen(screen)
 
         return screen
     end
 
     dismissModOptionsScreen = function(screen)
+        -- Not sure if this is needed, just copying it as it is from the source place
         screen:MakeDirty(false)
         TheFrontEnd:PopScreen()
     end
 
-    tryBindOpenMenuButton()
+    return onOpenMenuButton
 end
 
 enableAutoRepeatCraft = function(playerInst)
-    utils.overrideToCancelIf(
+    utils.overrideAndCancelIf(
         playerInst.replica.builder,
         "MakeRecipeFromMenu",
         function(self, recipe, skin)
@@ -302,6 +289,15 @@ enableAutoRepeatCraft = function(playerInst)
                 return true
             end
         end
+    )
+end
+
+isDefaultScreen = function()
+    local screen = TheFrontEnd:GetActiveScreen()
+    return utils.toboolean(
+        screen and
+        screen.name and
+        screen.name:find("HUD") ~= nil
     )
 end
 

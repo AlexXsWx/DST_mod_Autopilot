@@ -34,6 +34,13 @@ local allowedDeployPrefabs = {
 
 local isActionAllowedMap = {
 
+    [ACTIONS.ATTACK] = function(context, config)
+        local cherrypickingOrDeselecting = context.cherrypicking or context.deselecting
+        return (
+            not context.right and
+            not testCherryPick(config.allowAttack, cherrypickingOrDeselecting)
+        )
+    end,
     [ACTIONS.TAKEITEM]    = allow,
     [ACTIONS.REPAIR]      = allow,
     [ACTIONS.USEITEM]     = allow,
@@ -52,7 +59,7 @@ local isActionAllowedMap = {
     -- talking to plants
     [ACTIONS.INTERACT_WITH] = allowIfRight,
     [ACTIONS.ASSESSPLANTHAPPINESS] = function(context, config)
-        return not context.right and context.cherrypicking
+        return not context.right and (context.cherrypicking or context.deselecting)
     end,
 
     [ACTIONS.HAMMER] = allowIfRight,

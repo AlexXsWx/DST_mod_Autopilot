@@ -12,4 +12,5 @@ Separate selection box actions and pick actions
 only pick what's already in inventory
 Edge case: when using Shift, item shift on player should drop item but does nothing
 TODO: support cherry pick heaving
+TODO: option to set key bind from command line
 Fix inconsistent beaver stump digging speed

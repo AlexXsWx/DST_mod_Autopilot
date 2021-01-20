@@ -1,9 +1,13 @@
 local utils           = require "modAutopilot/utils/utils"
 local highlightHelper = require "modAutopilot/highlightHelper"
+local constants       = require "modAutopilot/constants"
 
 local SelectionManager = Class(function(self)
-    -- Maps entities to "right button?" (true or false); nil if entity is not selected
+    -- keys = selected entities, value = "right button?" (true or false)
+    -- Also tells if entity is selected or not (has entry or not)
     self._rightPerSelectedEntity = {}
+    -- key = prefab name, value = "right button?""
+    self._rightPerPrefabName = {}
 
     -- Are preview entities for selecting or deselecting?
     self._previewSelecting = true
@@ -36,6 +40,31 @@ end
 
 function SelectionManager:GetSelectedEntitiesIterator()
     return pairs(self._rightPerSelectedEntity)
+end
+
+function SelectionManager:MakeBackup()
+    local rightPerEntity = {}
+    for entity, right in pairs(self._rightPerSelectedEntity) do
+        rightPerEntity[entity] = right
+    end
+    local rightPerPrefabName = {}
+    for prefabName, right in pairs(self._rightPerPrefabName) do
+        rightPerPrefabName[prefabName] = right
+    end
+    return {
+        rightPerEntity     = rightPerEntity,
+        rightPerPrefabName = rightPerPrefabName,
+    }
+end
+
+function SelectionManager:RestoreFromBackup(backup)
+    self:DeselectAllEntities()
+    for entity, right in pairs(backup.rightPerEntity) do
+        self:SelectEntity(entity, right)
+    end
+    for prefabName, right in pairs(backup.rightPerPrefabName) do
+        self._rightPerPrefabName[prefabName] = right
+    end
 end
 
 local function SelectionManager_updateHighlight(self, entity)
@@ -79,6 +108,50 @@ function SelectionManager:SubmitPreview(right)
     end
 end
 
+function SelectionManager:SelectPrefabName(prefabName, right)
+    self._rightPerPrefabName[prefabName] = right
+    for _, group in pairs(utils.PREFAB_GROUPS) do
+        if group[prefabName] then
+            for equivalentPrefabName in pairs(group) do
+                self._rightPerPrefabName[equivalentPrefabName] = right
+            end
+        end
+    end
+end
+
+function SelectionManager:DeselectPrefabName(prefabName, right)
+    self._rightPerPrefabName[prefabName] = nil
+    for _, group in pairs(utils.PREFAB_GROUPS) do
+        if group[prefabName] then
+            for equivalentPrefabName in pairs(group) do
+                self._rightPerPrefabName[equivalentPrefabName] = nil
+            end
+        end
+    end
+end
+
+function SelectionManager:ExpandSelection(pos, radiusTiles, filter)
+    local tileSideSize = 4
+    local entitiesAround = TheSim:FindEntities(
+        pos.x,
+        pos.y,
+        pos.z,
+        radiusTiles * tileSideSize,
+        nil,
+        constants.UNSELECTABLE_TAGS
+    )
+    for k, v in ipairs(entitiesAround) do
+        local right = self._rightPerPrefabName[v.prefab]
+        if (
+            right ~= nil and
+            utils.testEntity(v) and
+            filter(v, right, true, false)
+        ) then
+            self:SelectEntity(v, right)
+        end
+    end
+end
+
 function SelectionManager:SelectEntity(entity, right)
     if not entity:IsValid() or entity:IsInLimbo() then
         self:DeselectEntity(entity)
@@ -110,6 +183,7 @@ function SelectionManager:DeselectAllEntities()
     for entity in pairs(self._rightPerSelectedEntity) do
         self:DeselectEntity(entity)
     end
+    self._rightPerPrefabName = {}
 end
 
 return SelectionManager
