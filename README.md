@@ -10,7 +10,8 @@ Queue a sequence of actions (such as chopping, mining, picking up, planting etc)
 # Changes
 
 * Auto scare birds and pick up seeds when planting stuff
-* Shift + double click to select given entity type within some radius
+* Shift + double click to select given entity type within some radius, and, if configured, automatically keep adding more of them over time
+* Ctrl + Z to undo cancel / repeat last command
 * Speed up chopping and digging
 * Support werebeaver form
 * Support Wormwood's ability to plant seeds anywhere
