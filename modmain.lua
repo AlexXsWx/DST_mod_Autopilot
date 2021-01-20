@@ -13,10 +13,12 @@ Assets = {
 }
 
 _G = GLOBAL
-local TheInput = GLOBAL.TheInput
+local TheInput      = GLOBAL.TheInput
+local KnownModIndex = GLOBAL.KnownModIndex
 
 -- forward declaration --
 local onPlayerPostInit
+local fixConfig
 local initAutopilot
 local bindConfigurableShortcut
 local changeOnControl
@@ -38,13 +40,69 @@ end
 
 onPlayerPostInit = function(playerInst)
     logger.logDebug("onPlayerPostInit")
-    local waitUntil = asyncUtils.getWaitUntil(playerInst)
-    waitUntil(
-        -- condition
-        function() return utils.toboolean(playerInst.components.playercontroller) end,
-        -- action once the condition is met
-        function() initAutopilot(playerInst) end
-    )
+    fixConfig(function()
+        local waitUntil = asyncUtils.getWaitUntil(playerInst)
+        waitUntil(
+            -- condition
+            function() return utils.toboolean(playerInst.components.playercontroller) end,
+            -- action once the condition is met
+            function() initAutopilot(playerInst) end
+        )
+    end)
+end
+
+-- In case configuration in modInfo was changed, make sure people don't have invalid saved data
+fixConfig = function(callback)
+    local clientConfig = true
+    local config = KnownModIndex:LoadModConfigurationOptions(modname, clientConfig)
+    local modInfo = KnownModIndex:GetModInfo(modname)
+    local clientOnly = modInfo and modInfo.client_only_mod
+    local settings = nil
+
+    local needsFix = false
+
+    if config and type(config) == "table" then
+        for i,v in ipairs(config) do
+            if (
+                v.name and
+                v.options and
+                (v.saved ~= nil or v.default ~= nil) and
+                (clientOnly or not v.client or clientConfig)
+            ) then
+                if not settings then settings = {} end
+                local value = v.saved
+                if value == nil then value = v.default end
+                local found = false
+                for _, v2 in pairs(v.options) do
+                    if v2.data == value then
+                        found = true
+                        break
+                    end
+                end
+                if not found then
+                    logger.logDebug(
+                        v.name .. " has unexpected value " .. tostring(value) ..
+                        "; changing back to " .. tostring(v.default)
+                    )
+                    value = v.default
+                    needsFix = true
+                end
+                table.insert(settings, {
+                    name = v.name,
+                    label = v.label,
+                    options = v.options,
+                    default = v.default,
+                    saved = value,
+                })
+            end
+        end
+    end
+
+    if needsFix then
+        KnownModIndex:SaveConfigurationOptions(callback, modname, settings, clientConfig)
+    else
+        callback()
+    end
 end
 
 local function updateConfig()
