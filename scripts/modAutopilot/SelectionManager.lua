@@ -2,6 +2,20 @@ local utils           = require "modAutopilot/utils/utils"
 local highlightHelper = require "modAutopilot/highlightHelper"
 local constants       = require "modAutopilot/constants"
 
+local PREFAB_GROUPS = {
+    {
+        ["stalker_minion"]  = true,
+        ["stalker_minion1"] = true,
+        ["stalker_minion2"] = true,
+    },
+    {
+        ["deer_antler"]  = true,
+        ["deer_antler1"] = true,
+        ["deer_antler2"] = true,
+        ["deer_antler3"] = true,
+    },
+}
+
 local SelectionManager = Class(function(self)
     -- keys = selected entities, value = "right button?" (true or false)
     -- Also tells if entity is selected or not (has entry or not)
@@ -110,10 +124,24 @@ end
 
 function SelectionManager:SelectPrefabName(prefabName, right)
     self._rightPerPrefabName[prefabName] = right
+    for _, group in pairs(PREFAB_GROUPS) do
+        if group[prefabName] then
+            for key in pairs(group) do
+                self._rightPerPrefabName[key] = right
+            end
+        end
+    end
 end
 
 function SelectionManager:DeselectPrefabName(prefabName, right)
     self._rightPerPrefabName[prefabName] = nil
+    for _, group in pairs(PREFAB_GROUPS) do
+        if group[prefabName] then
+            for key in pairs(group) do
+                self._rightPerPrefabName[key] = nil
+            end
+        end
+    end
 end
 
 function SelectionManager:ExpandSelection(pos, radiusTiles, filter)
