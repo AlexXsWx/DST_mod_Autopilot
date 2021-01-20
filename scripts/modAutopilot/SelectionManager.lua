@@ -9,6 +9,8 @@ local SelectionManager = Class(function(self)
     -- key = prefab name, value = "right button?""
     self._rightPerPrefabName = {}
 
+    self._deselectedEntities = {}
+
     -- Are preview entities for selecting or deselecting?
     self._previewSelecting = true
     self._previewEntities = {}
@@ -51,9 +53,14 @@ function SelectionManager:MakeBackup()
     for prefabName, right in pairs(self._rightPerPrefabName) do
         rightPerPrefabName[prefabName] = right
     end
+    local deselectedEntities = {}
+    for entity in pairs(self._deselectedEntities) do
+        deselectedEntities[entity] = true
+    end
     return {
         rightPerEntity     = rightPerEntity,
         rightPerPrefabName = rightPerPrefabName,
+        deselectedEntities = deselectedEntities,
     }
 end
 
@@ -64,6 +71,9 @@ function SelectionManager:RestoreFromBackup(backup)
     end
     for prefabName, right in pairs(backup.rightPerPrefabName) do
         self._rightPerPrefabName[prefabName] = right
+    end
+    for entity in pairs(backup.deselectedEntities) do
+        self._deselectedEntities[entity] = true
     end
 end
 
@@ -145,7 +155,8 @@ function SelectionManager:ExpandSelection(pos, radiusTiles, filter)
         if (
             right ~= nil and
             utils.testEntity(v) and
-            filter(v, right, true, false)
+            filter(v, right, true, false) and
+            not self._deselectedEntities[v]
         ) then
             self:SelectEntity(v, right)
         end
@@ -153,6 +164,8 @@ function SelectionManager:ExpandSelection(pos, radiusTiles, filter)
 end
 
 function SelectionManager:SelectEntity(entity, right)
+    self._deselectedEntities[entity] = nil
+
     if not entity:IsValid() or entity:IsInLimbo() then
         self:DeselectEntity(entity)
         return
@@ -165,6 +178,7 @@ function SelectionManager:SelectEntity(entity, right)
 end
 
 function SelectionManager:DeselectEntity(entity)
+    self._deselectedEntities[entity] = true
     if self._rightPerSelectedEntity[entity] ~= nil then
         self._rightPerSelectedEntity[entity] = nil
         SelectionManager_updateHighlight(self, entity)
@@ -184,6 +198,7 @@ function SelectionManager:DeselectAllEntities()
         self:DeselectEntity(entity)
     end
     self._rightPerPrefabName = {}
+    self._deselectedEntities = {}
 end
 
 return SelectionManager
