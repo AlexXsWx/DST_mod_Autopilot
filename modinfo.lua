@@ -46,6 +46,8 @@ configuration_options = {
             { description = "C",     data = "KEY_C"         },
             { description = "V",     data = "KEY_V"         },
             { description = "B",     data = "KEY_B"         },
+            { description = "W",     data = "KEY_W"         },
+            { description = "W + X", data = "KEY_W + KEY_X" },
         },
         default = "KEY_Z + KEY_X",
         hover = (
@@ -65,6 +67,7 @@ configuration_options = {
             { description = "C",     data = "KEY_C"     },
             { description = "V",     data = "KEY_V"     },
             { description = "B",     data = "KEY_B"     },
+            { description = "W",     data = "KEY_W"     },
         },
         default = "KEY_SHIFT",
         hover = (
@@ -85,6 +88,7 @@ configuration_options = {
             { description = "C",     data = "KEY_C"     },
             { description = "V",     data = "KEY_V"     },
             { description = "B",     data = "KEY_B"     },
+            { description = "W",     data = "KEY_W"     },
         },
         default = "KEY_Z",
         hover = (
@@ -107,6 +111,7 @@ configuration_options = {
             { description = "C",     data = "KEY_C"      },
             { description = "V",     data = "KEY_V"      },
             { description = "B",     data = "KEY_B"      },
+            { description = "W",     data = "KEY_W"      },
         },
         default = "KEY_X",
         hover = (
@@ -133,9 +138,26 @@ configuration_options = {
             { description = "None",   data = false },
             { description = "Ctrl+Z", data = "KEY_CTRL + KEY_Z" },
             { description = "Ctrl+X", data = "KEY_CTRL + KEY_X" },
+            { description = "Ctrl+W", data = "KEY_CTRL + KEY_W" },
         },
         default = "KEY_CTRL + KEY_Z",
         hover = "Press this button to undo last cancel.",
+    },
+    {
+        name = "keyToRepeatLastCraft",
+        label = "Repeat last craft",
+        options = 
+        {
+            { description = "None", data = false   },
+            { description = "Z",    data = "KEY_Z" },
+            { description = "X",    data = "KEY_X" },
+            { description = "C",    data = "KEY_C" },
+            { description = "V",    data = "KEY_V" },
+            { description = "B",    data = "KEY_B" },
+            { description = "W",    data = "KEY_W" },
+        },
+        default = false,
+        hover = "Press this button to repeat last craft.",
     },
 
     -- Double click
