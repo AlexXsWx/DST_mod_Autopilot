@@ -1,4 +1,4 @@
-# v1.2.1 -> Unreleased
+# v1.2.1 -> v1.3.0
 
 Tweaks and features:
 * Add option to use W key to support azerty layout
@@ -6,5 +6,3 @@ Tweaks and features:
 
 Fixes:
 * Fix ongoing search from double click conflicting with deselect feature
-
-Under the hood:
