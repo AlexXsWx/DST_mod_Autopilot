@@ -25,7 +25,10 @@ local changeOnControl
 local getOpenMenuFn
 local enableAutoRepeatCraft
 local isDefaultScreen
+local repeatLastCraft
 -------------------------
+
+local lastCraft = nil
 
 local config = {}
 
@@ -124,8 +127,9 @@ local function updateConfig()
     )
 
     -- bindings
-    config.keyToOpenOptions = GetModConfigData("keyToOpenOptions")
-    config.undoKey          = GetModConfigData("keyToUndoInterrupt")
+    config.keyToOpenOptions   = GetModConfigData("keyToOpenOptions")
+    config.undoKey            = GetModConfigData("keyToUndoInterrupt")
+    config.repeatLastCraftKey = GetModConfigData("keyToRepeatLastCraft")
 
     config.autoCollect           = GetModConfigData("autoCollect")           == "yes"
     config.interruptOnMove       = GetModConfigData("interruptOnMove")       == "yes"
@@ -217,6 +221,12 @@ initAutopilot = function(playerInst)
         config,
         "undoKey",
         function() playerInst.components.modautopilot:UndoInterrupt() end
+    )
+
+    keyBinder:bindConfigurableShortcut(
+        config,
+        "repeatLastCraftKey",
+        function() repeatLastCraft(playerInst, not config.isSelectKeyDown()) end
     )
 end
 
@@ -342,9 +352,13 @@ enableAutoRepeatCraft = function(playerInst)
         playerInst.replica.builder,
         "MakeRecipeFromMenu",
         function(self, recipe, skin)
-            if config.isSelectKeyDown() and recipe.placer == nil then
-                playerInst.components.modautopilot:RepeatRecipe(recipe, skin)
-                return true
+            lastCraft = nil
+            if recipe.placer ~= nil then return end
+            lastCraft = {}
+            lastCraft.recipe = recipe
+            lastCraft.skin   = skin
+            if config.isSelectKeyDown() then
+                return repeatLastCraft(playerInst)
             end
         end
     )
@@ -357,6 +371,16 @@ isDefaultScreen = function()
         screen.name and
         screen.name:find("HUD") ~= nil
     )
+end
+
+repeatLastCraft = function(playerInst, optOnce)
+    if lastCraft == nil then return false end
+    playerInst.components.modautopilot:RepeatRecipe(
+        lastCraft.recipe,
+        lastCraft.skin,
+        optOnce
+    )
+    return true
 end
 
 main()

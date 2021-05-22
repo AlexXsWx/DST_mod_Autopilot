@@ -199,7 +199,7 @@ end
 
 --
 
-function Autopilot:RepeatRecipe(recipe, skin)
+function Autopilot:RepeatRecipe(recipe, skin, optOnce)
 
     if self._activeThread then
         logger.logError("Unable to repeat recipe: something is already in process")
@@ -230,6 +230,7 @@ function Autopilot:RepeatRecipe(recipe, skin)
         while not self._interrupted and playerInst.replica.builder:CanBuild(recipe.name) do
             playerController:RemoteMakeRecipeFromMenu(recipe, skin)
             Autopilot_waitAction(self)
+            if optOnce then break end
         end
         self:Interrupt()
     end)
